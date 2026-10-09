@@ -1,5 +1,18 @@
 import "./globals.css";
-export const metadata = { title: "TopUpBuzz Panel" };
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "topupbuzz // control",
+  description: "Telegram automation control panel",
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (<html lang="en"><body>{children}</body></html>);
+  return (
+    <html lang="en">
+      <body>
+        <div className="scan-line" />
+        <div id="app-root">{children}</div>
+      </body>
+    </html>
+  );
 }
