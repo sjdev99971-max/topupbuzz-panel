@@ -3,39 +3,67 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getHealth, getTelegramWebApp, telegramMiniAuth, saveLocal, getLocal } from "@/lib/api";
+import { getHealth, telegramMiniAuth, saveLocal, getLocal } from "@/lib/api";
+
+function waitForTelegram(timeout = 2000): Promise<any> {
+  return new Promise((resolve) => {
+    const start = Date.now();
+    const check = () => {
+      const tg = (window as any).Telegram?.WebApp;
+      if (tg) return resolve(tg);
+      if (Date.now() - start > timeout) return resolve(null);
+      setTimeout(check, 50);
+    };
+    check();
+  });
+}
 
 export default function Landing() {
   const router = useRouter();
+  const [state, setState] = useState<"checking" | "landing">("checking");
   const [online, setOnline] = useState<boolean | null>(null);
-  const [checking, setChecking] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const existing = getLocal("session");
-    if (existing) { router.push("/dashboard"); return; }
+    (async () => {
+      // 1. Existing session
+      if (getLocal("session")) {
+        router.push("/dashboard");
+        return;
+      }
 
-    const tg = getTelegramWebApp();
-    if (tg?.initData) {
-      telegramMiniAuth(tg.initData)
-        .then(res => {
+      // 2. Wait for Telegram SDK
+      const tg = await waitForTelegram(2500);
+
+      if (tg && tg.initData && tg.initData.length > 0) {
+        // 3. Auto-login via Mini App
+        try {
+          tg.ready();
+          tg.expand();
+          const res = await telegramMiniAuth(tg.initData);
           saveLocal("session", res.user);
-          tg.expand?.();
           router.push("/dashboard");
-        })
-        .catch(() => setChecking(false));
-    } else {
-      setChecking(false);
-    }
+          return;
+        } catch (e: any) {
+          setError(e?.response?.data?.detail || "auth failed");
+        }
+      } else if (tg && !tg.initData) {
+        // Opened in Telegram but initData missing — probably opened as regular URL
+        setError("opened outside mini app — use the button below");
+      }
+
+      setState("landing");
+    })();
 
     getHealth().then(() => setOnline(true)).catch(() => setOnline(false));
   }, [router]);
 
-  if (checking) {
+  if (state === "checking") {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="text-[var(--cyan)] text-3xl mb-3">◆</div>
-          <div className="text-xs text-[var(--dim)]">authenticating…</div>
+          <div className="text-xs text-[var(--dim)]">checking…</div>
         </div>
       </div>
     );
@@ -48,44 +76,46 @@ export default function Landing() {
           <span className="text-[var(--cyan)] text-xl">◆</span>
           <span className="text-sm">topupbuzz<span className="text-[var(--cyan)]">.</span>control</span>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`w-2 h-2 rounded-full ${online ? "bg-[var(--ok)] pulse-cyan" : "bg-[var(--danger)]"}`} />
-          <span className="text-xs text-[var(--dim)] hidden md:inline">
-            {online ? "operational" : "offline"}
-          </span>
-        </div>
+        <span className={`w-2 h-2 rounded-full ${online ? "bg-[var(--ok)] pulse-cyan" : "bg-[var(--danger)]"}`} />
       </nav>
 
       <section className="relative flex-1 flex items-center justify-center px-6 py-16 overflow-hidden">
         <div className="hero-grid-bg" />
         <div className="relative max-w-3xl w-full text-center">
-          <div className="anim-up anim-d1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[var(--border2)] bg-black/40 text-xs text-[var(--dim)] mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[var(--border2)] bg-black/40 text-xs text-[var(--dim)] mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] pulse-cyan" />
             telegram automation platform
           </div>
 
-          <h1 className="anim-up anim-d2 text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
-            <span className="text-[var(--text)]">broadcast.</span>{" "}
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+            <span>broadcast.</span>{" "}
             <span className="glow-text">automate.</span>{" "}
-            <span className="text-[var(--text)]">scale.</span>
+            <span>scale.</span>
           </h1>
 
-          <p className="anim-up anim-d3 text-[var(--dim)] max-w-lg mx-auto text-sm md:text-base leading-relaxed mb-10">
-            Open from Telegram bot — auto-authenticated via Mini App. No passwords, no OTP.
+          <p className="text-[var(--dim)] max-w-lg mx-auto text-sm md:text-base mb-10">
+            Open from Telegram bot — auto-authenticated via Mini App.
           </p>
 
-          <div className="anim-up anim-d4 flex flex-wrap items-center justify-center gap-3">
-            <a href="https://t.me/S4JahidBot" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-sm px-6 py-3">
+          {error && (
+            <div className="mb-6 p-3 rounded border border-[var(--amber)]/40 bg-[var(--amber)]/5 text-xs text-[var(--amber)] max-w-md mx-auto">
+              ⚠ {error}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="https://t.me/S4JahidBot"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary text-sm px-6 py-3"
+            >
               open in telegram →
             </a>
             <Link href="/login" className="btn text-sm px-6 py-3">
               web login
             </Link>
           </div>
-
-          <p className="anim-up anim-d4 text-[10px] text-[var(--dim2)] mt-6">
-            for accounts with 2FA — use web login
-          </p>
         </div>
       </section>
 
