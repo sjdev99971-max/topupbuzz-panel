@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "topupbuzz // control",
-  description: "Telegram automation control panel",
+  description: "Telegram automation platform",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

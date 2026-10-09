@@ -1,379 +1,124 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { getHealth, getAccounts, getLogs } from "@/lib/api";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { getHealth } from "@/lib/api";
 
-type Tab = "overview" | "accounts" | "campaigns" | "logs";
-
-const SIDEBAR = [
-  { id: "overview",  label: "overview",  icon: "◆" },
-  { id: "accounts",  label: "accounts",  icon: "◈" },
-  { id: "campaigns", label: "campaigns", icon: "▲" },
-  { id: "logs",      label: "logs",      icon: "≡" },
-] as const;
-
-export default function Home() {
-  const [tab, setTab] = useState<Tab>("overview");
-  const [health, setHealth] = useState<any>(null);
-  const [accounts, setAccounts] = useState<any[]>([]);
-  const [error, setError] = useState<string>("");
-  const [loading, setLoading] = useState(true);
-  const [lastSync, setLastSync] = useState<string>("");
-  const [time, setTime] = useState<string>("");
-
-  const refresh = useCallback(async () => {
-    try {
-      const [h, a] = await Promise.all([getHealth(), getAccounts()]);
-      setHealth(h);
-      setAccounts(a);
-      setError("");
-      setLastSync(new Date().toLocaleTimeString());
-    } catch (e: any) {
-      setError(e?.message || "connection failed");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+export default function Landing() {
+  const [online, setOnline] = useState<boolean | null>(null);
 
   useEffect(() => {
-    refresh();
-    const id = setInterval(refresh, 15000);
-    const tick = setInterval(() => setTime(new Date().toLocaleTimeString()), 1000);
-    return () => { clearInterval(id); clearInterval(tick); };
-  }, [refresh]);
-
-  const online = health && !error;
+    getHealth().then(() => setOnline(true)).catch(() => setOnline(false));
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* HEADER */}
-      <header className="border-b border-[var(--border)] bg-[var(--surface)]/60 backdrop-blur-sm sticky top-0 z-20">
-        <div className="px-4 md:px-6 py-3 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="text-[var(--accent)] text-lg font-bold">◆</div>
-            <div>
-              <div className="text-[var(--text)] text-sm">
-                <span className="text-[var(--text-dim)]">$</span> topupbuzz<span className="text-[var(--accent)]">.</span>control
-              </div>
-              <div className="text-[10px] text-[var(--text-dim)] tracking-widest uppercase">
-                v0.1 / internal
-              </div>
-            </div>
+      {/* NAV */}
+      <nav className="relative z-10 px-6 md:px-10 py-5 flex items-center justify-between border-b border-[var(--border)]/40 backdrop-blur-sm">
+        <div className="flex items-center gap-3">
+          <div className="text-[var(--cyan)] text-xl">◆</div>
+          <span className="text-[var(--text)] text-sm tracking-wide">
+            topupbuzz<span className="text-[var(--cyan)]">.</span>control
+          </span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={`w-2 h-2 rounded-full ${online === true ? "bg-[var(--ok)] pulse-cyan" : online === false ? "bg-[var(--danger)]" : "bg-[var(--dim2)]"}`} />
+          <span className="text-xs text-[var(--dim)] hidden md:inline">
+            {online === true ? "operational" : online === false ? "offline" : "checking…"}
+          </span>
+          <Link href="/login" className="btn btn-primary text-xs py-2 px-4">
+            sign in →
+          </Link>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section className="relative flex-1 flex items-center justify-center px-6 py-16 md:py-24 overflow-hidden">
+        <div className="hero-grid-bg" />
+        <div className="relative max-w-4xl w-full text-center">
+          <div className="anim-up anim-d1 inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[var(--border2)] bg-black/40 text-xs text-[var(--dim)] mb-8">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] pulse-cyan" />
+            telegram automation platform
           </div>
 
-          <div className="flex items-center gap-4 text-xs">
-            <div className="hidden md:flex items-center gap-2 text-[var(--text-dim)]">
-              <span>time</span>
-              <span className="text-[var(--text)]">{time}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full ${online ? "bg-[var(--success)] pulse-dot" : "bg-[var(--danger)]"}`} />
-              <span className={online ? "text-[var(--success)]" : "text-[var(--danger)]"}>
-                {online ? "online" : "offline"}
-              </span>
+          <h1 className="anim-up anim-d2 text-4xl md:text-6xl font-bold tracking-tight leading-[1.1] mb-6">
+            <span className="text-[var(--text)]">broadcast.</span>{" "}
+            <span className="glow-text">automate.</span>{" "}
+            <span className="text-[var(--text)]">scale.</span>
+          </h1>
+
+          <p className="anim-up anim-d3 text-[var(--dim)] max-w-xl mx-auto text-sm md:text-base leading-relaxed mb-10">
+            Connect your Telegram accounts, select target groups, and blast messages
+            on schedule — all from a single dashboard.
+          </p>
+
+          <div className="anim-up anim-d4 flex flex-wrap items-center justify-center gap-3">
+            <Link href="/login" className="btn btn-primary text-sm px-6 py-3">
+              start now →
+            </Link>
+            <a href="#features" className="btn text-sm px-6 py-3">
+              learn more
+            </a>
+          </div>
+
+          {/* terminal preview */}
+          <div className="anim-up anim-d4 mt-14 mx-auto max-w-lg text-left">
+            <div className="card corner p-4 text-xs">
+              <div className="flex items-center gap-2 mb-3 pb-3 border-b border-[var(--border)]">
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--danger)]/60" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--amber)]/60" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[var(--ok)]/60" />
+                <span className="ml-2 text-[var(--dim2)]">terminal</span>
+              </div>
+              <div className="space-y-1.5 text-[var(--dim)]">
+                <div><span className="text-[var(--cyan)]">$</span> topupbuzz connect</div>
+                <div className="text-[var(--dim2)]">→ establishing session...</div>
+                <div><span className="text-[var(--ok)]">✓</span> authenticated</div>
+                <div><span className="text-[var(--cyan)]">$</span> campaign start</div>
+                <div className="text-[var(--dim2)]">→ blasting 42 groups...</div>
+                <div><span className="text-[var(--ok)]">✓</span> delivered 42/42 in 3.2s</div>
+                <div className="text-[var(--cyan)]">▊</div>
+              </div>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* SIDEBAR */}
-        <aside className="md:w-56 border-b md:border-b-0 md:border-r border-[var(--border)] bg-[var(--surface)]/40">
-          <nav className="flex md:flex-col overflow-x-auto md:overflow-visible">
-            {SIDEBAR.map((s) => (
-              <div
-                key={s.id}
-                onClick={() => setTab(s.id as Tab)}
-                className={`nav-item whitespace-nowrap ${tab === s.id ? "active" : ""}`}
-              >
-                <span className="opacity-70">{s.icon}</span>
-                <span>{s.label}</span>
+      {/* FEATURES */}
+      <section id="features" className="relative px-6 md:px-10 py-20 border-t border-[var(--border)]/40">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-2xl md:text-3xl font-bold mb-2">
+              <span className="text-[var(--dim)]">&gt;</span>{" "}
+              <span className="glow-text-sm">capabilities</span>
+            </h2>
+            <p className="text-[var(--dim)] text-sm">everything you need in one place</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-4">
+            {[
+              { icon: "◈", title: "multi-account", desc: "connect unlimited telegram accounts with secure session storage." },
+              { icon: "◉", title: "smart filtering", desc: "auto-detect groups, filter by keyword, blacklist unwanted targets." },
+              { icon: "▶", title: "scheduled blast", desc: "set interval and fire to all selected groups simultaneously." },
+              { icon: "≡", title: "live logs", desc: "watch every delivery in real-time with detailed status." },
+              { icon: "🛡", title: "flood-safe", desc: "built-in jitter and concurrency control to avoid bans." },
+              { icon: "◆", title: "web panel", desc: "control everything from a clean, dark, keyboard-friendly UI." },
+            ].map((f, i) => (
+              <div key={i} className={`card card-glow corner p-5 anim-up anim-d${(i % 4) + 1}`}>
+                <div className="text-[var(--cyan)] text-2xl mb-3">{f.icon}</div>
+                <h3 className="text-[var(--text)] text-sm mb-1.5 tracking-wide">{f.title}</h3>
+                <p className="text-[var(--dim)] text-xs leading-relaxed">{f.desc}</p>
               </div>
             ))}
-          </nav>
-          <div className="hidden md:block p-4 mt-auto border-t border-[var(--border)]">
-            <div className="text-[10px] text-[var(--text-dim)] uppercase tracking-wider mb-1">last sync</div>
-            <div className="text-[11px] text-[var(--text)]">{lastSync || "—"}</div>
           </div>
-        </aside>
+        </div>
+      </section>
 
-        {/* MAIN */}
-        <main className="flex-1 p-4 md:p-6 fade-in" key={tab}>
-          {tab === "overview" && (
-            <OverviewTab
-              health={health}
-              accounts={accounts}
-              error={error}
-              loading={loading}
-              onRefresh={refresh}
-            />
-          )}
-          {tab === "accounts" && <AccountsTab accounts={accounts} loading={loading} />}
-          {tab === "campaigns" && <CampaignsTab accounts={accounts} />}
-          {tab === "logs" && <LogsTab accounts={accounts} />}
-        </main>
-      </div>
-
-      <footer className="border-t border-[var(--border)] px-4 md:px-6 py-3 text-[10px] text-[var(--text-dim)] flex justify-between">
-        <span>topupbuzz // built with next + fastapi</span>
-        <span className="hidden md:inline">api: apis.topup.buzz</span>
+      {/* FOOTER */}
+      <footer className="border-t border-[var(--border)]/40 px-6 md:px-10 py-6 text-xs text-[var(--dim2)] flex flex-wrap justify-between gap-2">
+        <span>topupbuzz // internal use only</span>
+        <span>© {new Date().getFullYear()}</span>
       </footer>
-    </div>
-  );
-}
-
-/* ---------- TAB: OVERVIEW ---------- */
-function OverviewTab({ health, accounts, error, loading, onRefresh }: any) {
-  const stats = [
-    { label: "accounts", value: accounts.length, accent: "var(--accent)" },
-    { label: "active", value: accounts.filter((a: any) => a.health === "Safe").length, accent: "var(--success)" },
-    { label: "flagged", value: accounts.filter((a: any) => a.health !== "Safe").length, accent: "var(--warn)" },
-    { label: "uptime", value: health ? "up" : "—", accent: "var(--accent2)" },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <SectionTitle title="system overview" subtitle="real-time status" onRefresh={onRefresh} />
-
-      {error && (
-        <div className="card card-corner p-4 border-[var(--danger)]/40">
-          <div className="text-[var(--danger)] text-xs uppercase tracking-wider mb-1">
-            ✕ connection error
-          </div>
-          <div className="text-[var(--text)] text-sm">{error}</div>
-        </div>
-      )}
-
-      {/* STATS GRID */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {stats.map((s) => (
-          <div key={s.label} className="card p-4">
-            <div className="text-[10px] text-[var(--text-dim)] uppercase tracking-wider">
-              {s.label}
-            </div>
-            <div className="text-2xl font-bold mt-1" style={{ color: s.accent }}>
-              {loading ? "…" : s.value}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* HEALTH PANEL */}
-      <div className="card card-corner p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm text-[var(--text)]">
-            <span className="text-[var(--text-dim)]">&gt;</span> backend health
-          </h3>
-          {health && (
-            <span className="tag tag-ok">
-              <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] pulse-dot" />
-              responding
-            </span>
-          )}
-        </div>
-        <pre className="text-xs text-[var(--accent)] bg-black/30 p-4 rounded border border-[var(--border)] overflow-auto max-h-64">
-{health ? JSON.stringify(health, null, 2) : loading ? "// pinging backend..." : "// no data"}
-        </pre>
-      </div>
-
-      {/* RECENT ACCOUNTS */}
-      <div className="card p-5">
-        <h3 className="text-sm mb-3">
-          <span className="text-[var(--text-dim)]">&gt;</span> recent accounts
-        </h3>
-        {accounts.length === 0 ? (
-          <div className="text-[var(--text-dim)] text-xs py-6 text-center">
-            // no accounts registered
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {accounts.slice(0, 5).map((a: any) => (
-              <div key={a.id}
-                className="flex items-center justify-between p-3 rounded border border-[var(--border)] hover:border-[var(--accent)]/40 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="text-[var(--accent)] text-xs">◈</span>
-                  <span className="text-sm">{a.phone}</span>
-                </div>
-                <span className={`tag ${a.health === "Safe" ? "tag-ok" : "tag-warn"}`}>
-                  {a.health}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- TAB: ACCOUNTS ---------- */
-function AccountsTab({ accounts, loading }: any) {
-  return (
-    <div className="space-y-4">
-      <SectionTitle title="accounts" subtitle={`${accounts.length} registered`} />
-
-      <div className="flex gap-2 flex-wrap">
-        <button className="btn btn-primary">+ add account</button>
-        <button className="btn">↻ refresh</button>
-      </div>
-
-      {loading ? (
-        <div className="card p-8 text-center text-[var(--text-dim)] text-xs">
-          // loading accounts...
-        </div>
-      ) : accounts.length === 0 ? (
-        <div className="card p-8 text-center">
-          <div className="text-[var(--text-dim)] text-xs mb-3">// no accounts yet</div>
-          <button className="btn btn-primary">+ register first account</button>
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {accounts.map((a: any) => (
-            <div key={a.id} className="card card-corner p-4 hover:bg-[var(--surface3)]/30">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded bg-[var(--surface3)] border border-[var(--border)] flex items-center justify-center text-[var(--accent)]">
-                    ◈
-                  </div>
-                  <div>
-                    <div className="text-sm">{a.phone}</div>
-                    <div className="text-[10px] text-[var(--text-dim)]">id: {a.id}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className={`tag ${a.health === "Safe" ? "tag-ok" : "tag-warn"}`}>
-                    {a.health}
-                  </span>
-                  <button className="btn">settings</button>
-                  <button className="btn btn-danger">remove</button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ---------- TAB: CAMPAIGNS ---------- */
-function CampaignsTab({ accounts }: any) {
-  return (
-    <div className="space-y-4">
-      <SectionTitle title="campaigns" subtitle="blast scheduler" />
-
-      {accounts.length === 0 ? (
-        <div className="card p-8 text-center text-[var(--text-dim)] text-xs">
-          // add an account first
-        </div>
-      ) : (
-        <div className="grid gap-3">
-          {accounts.map((a: any) => (
-            <div key={a.id} className="card p-5">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <div className="text-sm">{a.phone}</div>
-                  <div className="text-[10px] text-[var(--text-dim)]">campaign for {a.id}</div>
-                </div>
-                <span className="tag tag-neutral">idle</span>
-              </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                <Field label="source" value="—" />
-                <Field label="groups" value="0" />
-                <Field label="interval" value="5m" />
-                <Field label="status" value="stopped" />
-              </div>
-              <div className="flex gap-2 mt-4">
-                <button className="btn btn-primary">▶ start</button>
-                <button className="btn">configure</button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ---------- TAB: LOGS ---------- */
-function LogsTab({ accounts }: any) {
-  const [logs, setLogs] = useState<any[]>([]);
-  const [selected, setSelected] = useState<string>("");
-
-  useEffect(() => {
-    if (!selected && accounts.length > 0) setSelected(accounts[0].id);
-  }, [accounts, selected]);
-
-  useEffect(() => {
-    if (!selected) return;
-    getLogs(selected).then(setLogs).catch(() => setLogs([]));
-  }, [selected]);
-
-  return (
-    <div className="space-y-4">
-      <SectionTitle title="logs" subtitle="broadcast history" />
-
-      <div className="flex gap-2 flex-wrap">
-        <select
-          value={selected}
-          onChange={(e) => setSelected(e.target.value)}
-          className="bg-[var(--surface2)] border border-[var(--border)] rounded px-3 py-2 text-xs text-[var(--text)] outline-none focus:border-[var(--accent)]"
-        >
-          <option value="">— select account —</option>
-          {accounts.map((a: any) => (
-            <option key={a.id} value={a.id}>{a.phone}</option>
-          ))}
-        </select>
-        <button className="btn">↻ refresh</button>
-      </div>
-
-      <div className="card p-4 bg-black/20">
-        {logs.length === 0 ? (
-          <div className="text-[var(--text-dim)] text-xs py-6 text-center">
-            // no log entries
-          </div>
-        ) : (
-          <div className="space-y-1 text-xs">
-            {logs.map((l: any, i: number) => (
-              <div key={i} className="flex items-center gap-3 py-1.5 border-b border-[var(--border)]/40 last:border-0">
-                <span className="text-[var(--text-dim)] w-40 shrink-0">{l.ts}</span>
-                <span className={`tag ${l.status?.startsWith("success") ? "tag-ok" : "tag-err"} shrink-0`}>
-                  {l.status?.split(":")[0] || "?"}
-                </span>
-                <span className="text-[var(--text)] truncate">{l.group_title}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/* ---------- SHARED ---------- */
-function SectionTitle({ title, subtitle, onRefresh }: any) {
-  return (
-    <div className="flex items-end justify-between gap-3 flex-wrap">
-      <div>
-        <h1 className="text-lg text-[var(--text)]">
-          <span className="text-[var(--text-dim)]">&gt;</span> {title}
-        </h1>
-        {subtitle && (
-          <p className="text-[11px] text-[var(--text-dim)] mt-0.5">{subtitle}</p>
-        )}
-      </div>
-      {onRefresh && (
-        <button onClick={onRefresh} className="btn">↻ refresh</button>
-      )}
-    </div>
-  );
-}
-
-function Field({ label, value }: any) {
-  return (
-    <div>
-      <div className="text-[10px] text-[var(--text-dim)] uppercase tracking-wider">{label}</div>
-      <div className="text-[var(--text)] mt-0.5">{value}</div>
     </div>
   );
 }
