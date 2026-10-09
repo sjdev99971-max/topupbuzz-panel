@@ -75,7 +75,7 @@ export default function Landing() {
           </p>
 
           <div className="anim-up anim-d4 flex flex-wrap items-center justify-center gap-3">
-            <a href="https://t.me/topupbuzz_bot" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-sm px-6 py-3">
+            <a href="https://t.me/S4JahidBot" target="_blank" rel="noopener noreferrer" className="btn btn-primary text-sm px-6 py-3">
               open in telegram →
             </a>
             <Link href="/login" className="btn text-sm px-6 py-3">
