@@ -9,7 +9,6 @@ export const api = axios.create({
   timeout: 60000,
 });
 
-// health
 export const getHealth = () => api.get("/health").then(r => r.data);
 export const getAccounts = () => api.get("/accounts").then(r => r.data);
 export const getDialogs = (id: string) => api.get(`/accounts/${id}/dialogs`).then(r => r.data);
@@ -19,13 +18,13 @@ export const startCampaign = (id: string) => api.post(`/accounts/${id}/start`).t
 export const stopCampaign = (id: string) => api.post(`/accounts/${id}/stop`).then(r => r.data);
 export const getLogs = (id: string) => api.get(`/accounts/${id}/logs`).then(r => r.data);
 
-// auth
 export const sendOtp = (phone: string) =>
   api.post("/auth/send-otp", { phone }).then(r => r.data);
 export const verifyOtp = (session_id: string, code: string, password?: string) =>
   api.post("/auth/verify-otp", { session_id, code, password }).then(r => r.data);
+export const telegramMiniAuth = (init_data: string) =>
+  api.post("/auth/telegram-mini", { init_data }).then(r => r.data);
 
-// helpers
 export const saveLocal = (key: string, val: any) => {
   if (typeof window !== "undefined") localStorage.setItem(key, JSON.stringify(val));
 };
@@ -36,4 +35,9 @@ export const getLocal = (key: string) => {
 };
 export const clearLocal = (key: string) => {
   if (typeof window !== "undefined") localStorage.removeItem(key);
+};
+
+export const getTelegramWebApp = (): any => {
+  if (typeof window === "undefined") return null;
+  return (window as any).Telegram?.WebApp || null;
 };
