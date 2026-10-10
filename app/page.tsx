@@ -45,7 +45,10 @@ export default function Landing() {
           router.push("/dashboard");
           return;
         } catch (e: any) {
-          setError(e?.response?.data?.detail || "auth failed");
+          const status = e?.response?.status || "?";
+          const detail = e?.response?.data?.detail || e?.message || "unknown";
+          setError(`auth failed [${status}]: ${detail}`);
+          console.error("Mini auth error:", e?.response?.data || e);
         }
       } else if (tg && !tg.initData) {
         // Opened in Telegram but initData missing — probably opened as regular URL

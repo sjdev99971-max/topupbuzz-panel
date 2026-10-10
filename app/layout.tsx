@@ -9,8 +9,11 @@ export const metadata: Metadata = {
 
 const themeInit = `
 try {
-  var t = localStorage.getItem('theme') || 'dark';
+  // default dark unless user explicitly toggled
+  var t = localStorage.getItem('theme_pref') || 'dark';
   document.documentElement.setAttribute('data-theme', t);
+  // clean up old key
+  localStorage.removeItem('theme');
 } catch(e){}
 `;
 

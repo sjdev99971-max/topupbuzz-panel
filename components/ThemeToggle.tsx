@@ -5,23 +5,22 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
-    // Force dark on first visit ever; respect user toggle only if they've actively switched
-    const stored = localStorage.getItem("theme");
-    const t = stored === "light" ? "light" : "dark";
+    // FORCE dark unless user explicitly toggled
+    const stored = localStorage.getItem("theme_pref");
+    const t: "dark" | "light" = stored === "light" ? "light" : "dark";
     setTheme(t);
     document.documentElement.setAttribute("data-theme", t);
-    if (!stored) localStorage.setItem("theme", "dark");
   }, []);
 
   const toggle = () => {
     const next = theme === "dark" ? "light" : "dark";
     setTheme(next);
-    localStorage.setItem("theme", next);
+    localStorage.setItem("theme_pref", next);
     document.documentElement.setAttribute("data-theme", next);
   };
 
   return (
-    <button onClick={toggle} className="btn btn-sm" title="toggle theme">
+    <button onClick={toggle} className="btn btn-sm btn-icon" title="Toggle theme">
       {theme === "dark" ? "☀" : "☾"}
     </button>
   );
