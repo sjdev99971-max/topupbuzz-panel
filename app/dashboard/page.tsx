@@ -11,8 +11,8 @@ import { toast } from "@/components/Toast";
 import {
   getHealth, getMe, getAccounts, getPlans, getLocal, saveLocal, clearLocal,
   getTelegramWebApp, telegramMiniAuth, deleteAccount, getSession,
-  adminGetUsers, adminSetUserPlan, adminBroadcast, getAnalytics,
-  getStealth, setStealth, SUPPORT_USER
+  adminGetUsers, adminUpdatePlan, adminSetUserPlan, adminBroadcast,
+  getAnalytics, setStealth, SUPPORT_USER
 } from "@/lib/api";
 
 type Tab = "overview" | "accounts" | "plans" | "admin";
