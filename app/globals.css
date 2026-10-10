@@ -609,11 +609,6 @@ body, .card, .stat, .btn, .inp, .modal, .toast {
 }
 
 
-/* Mobile bottom nav space */
-@media (max-width: 767px) {
-  body { padding-bottom: 64px !important; }
-  main, #app-root { padding-bottom: 0; }
-}
 
 /* ============ CARD CLARITY v3 ============ */
 .card {
@@ -696,4 +691,22 @@ body, .card, .stat, .btn, .inp, .modal, .toast {
   --text: #e8e8f0 !important;
   --dim: #9a9aae !important;
   --dim2: #6a6a80 !important;
+}
+
+
+/* ============ MOBILE NAV FIX ============ */
+@media (max-width: 767px) {
+  body {
+    padding-bottom: 76px !important;
+    overflow-x: hidden;
+  }
+  #app-root {
+    padding-bottom: 0 !important;
+  }
+}
+
+/* Ensure no parent has transform that breaks fixed */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
 }
