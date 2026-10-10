@@ -44,7 +44,8 @@ export const getLogs = (id: string, limit = 100) => api.get(`/accounts/${id}/log
 export const getLogsCsv = (id: string) => `${API_URL}/accounts/${id}/logs.csv`;
 
 // auth
-export const sendOtp = (phone: string) => api.post("/auth/send-otp", { phone }).then(r => r.data);
+export const sendOtp = (phone: string, telegram_id?: number) =>
+  api.post("/auth/send-otp", { phone, telegram_id }).then(r => r.data);
 export const verifyOtp = (sid: string, code: string, pw?: string) =>
   api.post("/auth/verify-otp", { session_id: sid, code, password: pw }).then(r => r.data);
 export const telegramMiniAuth = (init_data: string) =>

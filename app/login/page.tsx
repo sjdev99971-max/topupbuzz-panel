@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { sendOtp, verifyOtp, saveLocal } from "@/lib/api";
+import { sendOtp, verifyOtp, saveLocal, getLocal } from "@/lib/api";
 
 type Step = "phone" | "otp" | "password" | "success";
 
@@ -23,7 +23,9 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await sendOtp(phone.trim());
+      const sess = getLocal("session");
+      const tgId = sess?.id;
+      const res = await sendOtp(phone.trim(), tgId);
       setSessionId(res.session_id);
       setStep("otp");
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
