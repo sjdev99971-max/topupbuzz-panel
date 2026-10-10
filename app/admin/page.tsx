@@ -55,14 +55,28 @@ export default function AdminPage() {
   };
 
   const refresh = useCallback(async () => {
-    try {
-      const [s, u, a, p] = await Promise.all([
-        getAdminStats(), adminGetUsers(), getAccounts(), getPlans()
-      ]);
-      setStats(s); setUsers(u); setAccounts(a); setPlans(p);
-    } catch (e: any) {
-      toast("Failed to load admin data", "error");
-    } finally { setLoading(false); }
+    const calls: [string, Promise<any>][] = [
+      ["stats", getAdminStats()], ["users", adminGetUsers()],
+      ["accounts", getAccounts()], ["plans", getPlans()]
+    ];
+    const results = await Promise.allSettled(calls.map(c => c[1]));
+    const failed: string[] = [];
+    results.forEach((r, i) => {
+      const name = calls[i][0];
+      if (r.status === "fulfilled") {
+        if (name === "stats") setStats(r.value);
+        if (name === "users") setUsers(r.value);
+        if (name === "accounts") setAccounts(r.value);
+        if (name === "plans") setPlans(r.value);
+      } else {
+        const status = (r.reason as any)?.response?.status || "?";
+        const detail = (r.reason as any)?.response?.data?.detail || (r.reason as any)?.message;
+        failed.push(`${name}[${status}]: ${detail}`);
+        console.error(`❌ admin.${name}:`, status, detail);
+      }
+    });
+    if (failed.length > 0) toast(failed.join(" · "), "error");
+    setLoading(false);
   }, []);
 
   useEffect(() => {

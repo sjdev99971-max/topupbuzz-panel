@@ -66,19 +66,29 @@ export default function Dashboard() {
   }, [router]);
 
   const refresh = useCallback(async () => {
-    const results = await Promise.allSettled([
-      getHealth(), getAccounts(), getPlans(), getMe(), getMyStats()
-    ]);
-    const [h, a, p, m, s] = results;
-    if (h.status === "fulfilled") setHealth(h.value);
-    if (a.status === "fulfilled") setAccounts(a.value);
-    if (p.status === "fulfilled") setPlans(p.value);
-    if (m.status === "fulfilled") { setMe(m.value); saveLocal("session", m.value); }
-    if (s.status === "fulfilled") setStats(s.value);
-
-    // Collect errors
-    const errs = results.filter(r => r.status === "rejected").map(r => (r as any).reason?.response?.data?.detail || (r as any).reason?.message);
-    setError(errs.length > 0 ? errs.join(" · ") : "");
+    const calls: [string, Promise<any>][] = [
+      ["health", getHealth()], ["accounts", getAccounts()],
+      ["plans", getPlans()], ["me", getMe()], ["stats", getMyStats()]
+    ];
+    const results = await Promise.allSettled(calls.map(c => c[1]));
+    const failed: string[] = [];
+    results.forEach((r, i) => {
+      const name = calls[i][0];
+      if (r.status === "fulfilled") {
+        if (name === "health") setHealth(r.value);
+        if (name === "accounts") setAccounts(r.value);
+        if (name === "plans") setPlans(r.value);
+        if (name === "me") { setMe(r.value); saveLocal("session", r.value); }
+        if (name === "stats") setStats(r.value);
+      } else {
+        const status = (r.reason as any)?.response?.status || "?";
+        const detail = (r.reason as any)?.response?.data?.detail || (r.reason as any)?.message || "err";
+        failed.push(`${name}[${status}]: ${detail}`);
+        console.error(`❌ ${name} failed:`, status, detail);
+      }
+    });
+    setError(failed.length > 0 ? failed.join(" · ") : "");
+    const m = results[3];
 
     // Only logout on hard 401 for /me
     if (m.status === "rejected" && (m as any).reason?.response?.status === 401) {
