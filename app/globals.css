@@ -457,10 +457,6 @@ body::after {
 }
 
 
-/* Mobile bottom nav spacing */
-@media (max-width: 768px) {
-  body { padding-bottom: 72px; }
-}
 
 /* Smooth tab transitions */
 .fade { animation: fade 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -610,4 +606,94 @@ body, .card, .stat, .btn, .inp, .modal, .toast {
   .top-tabs-mobile-hide {
     display: flex;
   }
+}
+
+
+/* Mobile bottom nav space */
+@media (max-width: 767px) {
+  body { padding-bottom: 64px !important; }
+  main, #app-root { padding-bottom: 0; }
+}
+
+/* ============ CARD CLARITY v3 ============ */
+.card {
+  background: #12121a !important;
+  backdrop-filter: none !important;
+  border: 1px solid #2a2a3d !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.02) !important;
+}
+
+.card-header {
+  padding: 14px 18px !important;
+  border-bottom: 1px solid #2a2a3d !important;
+  background: rgba(255,255,255,0.015) !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+.card-header h3 {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+}
+.card-header .sub {
+  font-size: 11px !important;
+  color: var(--dim) !important;
+}
+.card-body { padding: 18px !important; }
+.card-body.tight { padding: 14px !important; }
+
+/* Stat cards — distinct look */
+.stat {
+  background: #12121a !important;
+  backdrop-filter: none !important;
+  border: 1px solid #2a2a3d !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  position: relative;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important;
+}
+.stat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 16px; right: 16px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent);
+  opacity: 0.6;
+  border-radius: 2px;
+}
+.stat-label {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: var(--dim) !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+}
+.stat-value {
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  margin-top: 6px !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.1 !important;
+}
+.stat-sub {
+  font-size: 11px !important;
+  color: var(--dim2) !important;
+  margin-top: 4px !important;
+}
+
+/* Grid gap */
+.grid { gap: 12px !important; }
+
+/* Ensure contrast */
+[data-theme="light"] {
+  --bg: #0a0a0f !important;
+  --bg2: #0d0d13 !important;
+  --surface: #12121a !important;
+  --surface2: #181822 !important;
+  --surface3: #1e1e2a !important;
+  --border: #2a2a3d !important;
+  --border2: #3a3a52 !important;
+  --text: #e8e8f0 !important;
+  --dim: #9a9aae !important;
+  --dim2: #6a6a80 !important;
 }

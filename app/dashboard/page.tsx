@@ -10,6 +10,7 @@ import { filterAccounts, sortAccounts } from "@/lib/filters";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import HealthDashboard from "@/components/HealthDashboard";
 import MobileNav from "@/components/MobileNav";
+import Avatar from "@/components/Avatar";
 import StealthBanner from "@/components/StealthBanner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkelList } from "@/components/Skeleton";
@@ -202,13 +203,7 @@ export default function Dashboard() {
           {/* Profile */}
           <div className="p-5 border-b border-[var(--border)]">
             <div className="flex items-center gap-3 mb-4">
-              {me?.photo_url ? (
-                <img src={me.photo_url} alt="" className="w-11 h-11 rounded-full object-cover" />
-              ) : (
-                <div className="w-11 h-11 rounded-full bg-[var(--accent)]/15 border border-[var(--accent)]/30 flex items-center justify-center text-[var(--accent)] font-bold">
-                  {(me?.first_name?.[0] || me?.username?.[0] || "?").toUpperCase()}
-                </div>
-              )}
+              <Avatar user={me} size={44} />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold truncate">
                   {me?.first_name || me?.username || "user"}
@@ -483,11 +478,14 @@ function Plans({ plans, me }: any) {
 }
 
 /* ============ HELPERS ============ */
-function StatCard({ label, value, sub, accent }: any) {
+function StatCard({ label, value, sub, accent, icon }: any) {
   const color = accent === "success" ? "var(--success)" : accent === "warning" ? "var(--warning)" :
                 accent === "danger" ? "var(--danger)" : "var(--text)";
   return (
     <div className="stat">
+      {icon && (
+        <div className="absolute top-3 right-3 text-[var(--dim2)] opacity-40 text-base">{icon}</div>
+      )}
       <div className="stat-label">{label}</div>
       <div className="stat-value" style={{ color }}>{value}</div>
       {sub && <div className="stat-sub">{sub}</div>}
