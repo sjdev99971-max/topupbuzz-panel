@@ -7,6 +7,10 @@ import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
 import RefreshButton from "@/components/RefreshButton";
 import { filterAccounts, sortAccounts } from "@/lib/filters";
+import AnalyticsPanel from "@/components/AnalyticsPanel";
+import HealthDashboard from "@/components/HealthDashboard";
+import AnalyticsPanel from "@/components/AnalyticsPanel";
+import HealthDashboard from "@/components/HealthDashboard";
 import StealthBanner from "@/components/StealthBanner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkelList } from "@/components/Skeleton";
@@ -17,7 +21,7 @@ import {
   getMyStats, setStealth, SUPPORT_USER
 } from "@/lib/api";
 
-type Tab = "overview" | "accounts" | "plans";
+type Tab = "overview" | "accounts" | "analytics" | "health" | "plans";
 
 function waitForTelegram(timeout = 2000): Promise<any> {
   return new Promise((resolve) => {
@@ -135,6 +139,8 @@ export default function Dashboard() {
   const tabs: {id: Tab; label: string; icon: string}[] = [
     { id: "overview", label: "Overview", icon: "◈" },
     { id: "accounts", label: "Accounts", icon: "▤" },
+    { id: "analytics", label: "Analytics", icon: "📊" },
+    { id: "health", label: "Health", icon: "🩺" },
     { id: "plans", label: "Plans", icon: "◆" },
   ];
 
@@ -226,6 +232,8 @@ export default function Dashboard() {
 
           {tab === "overview" && <Overview me={me} stats={stats} accounts={accounts} loading={loading} />}
           {tab === "accounts" && <Accounts accounts={accounts} loading={loading} router={router} onDelete={setConfirmDel} onCopySession={copySession} refresh={refresh} />}
+          {tab === "analytics" && <AnalyticsPanel />}
+          {tab === "health" && <HealthDashboard />}
           {tab === "plans" && <Plans plans={plans} me={me} />}
         </main>
       </div>

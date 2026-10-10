@@ -102,3 +102,12 @@ export const duplicateCampaign = (accId: string, from_acc_id: string) =>
 // batch1
 export const getNotifications = () => api.get("/notifications").then(r => r.data);
 export const markNotifsSeen = () => api.post("/notifications/mark-seen").then(r => r.data);
+
+// batch2
+export const pauseCampaign = (accId: string) => api.post(`/accounts/${accId}/campaign/pause`).then(r => r.data);
+export const resumeCampaign = (accId: string) => api.post(`/accounts/${accId}/campaign/resume`).then(r => r.data);
+export const getHealthAccounts = () => api.get("/health/accounts").then(r => r.data);
+export const runHealthCheck = (accId: string) => api.post(`/accounts/${accId}/health-check`).then(r => r.data);
+export const getAnalyticsGroups = () => api.get("/analytics/groups").then(r => r.data);
+export const getAnalyticsHours = () => api.get("/analytics/hours").then(r => r.data);
+export const getAnalyticsCost = () => api.get("/analytics/cost").then(r => r.data);

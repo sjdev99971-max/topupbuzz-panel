@@ -11,7 +11,7 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import {
   getAccount, getCampaign, saveCampaign, startCampaign, stopCampaign,
   refreshDialogs, getLogs, getLogsCsv, getLocal, getAccountStats,
-  retryFailed, scheduleCampaign, unscheduleCampaign
+  retryFailed, scheduleCampaign, unscheduleCampaign, pauseCampaign, resumeCampaign
 } from "@/lib/api";
 
 export default function AccountPage() {
@@ -28,6 +28,7 @@ export default function AccountPage() {
   const [intervalMin, setIntervalMin] = useState(5);
   const [mode, setMode] = useState<"copy" | "forward">("copy");
   const [status, setStatus] = useState("Stopped");
+  const [paused, setPaused] = useState(false);
   const [scheduledAt, setScheduledAt] = useState(0);
   const [logs, setLogs] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
@@ -49,6 +50,7 @@ export default function AccountPage() {
         setSourceTitle(camp.source_title || "");
         setIntervalMin(camp.interval_min || 5);
         setStatus(camp.status || "Stopped");
+        setPaused(!!camp.paused);
         setMode((camp.mode as any) || "copy");
         setScheduledAt(camp.scheduled_at || 0);
         const grps = camp.groups_json || [];
@@ -119,6 +121,22 @@ export default function AccountPage() {
     }
   };
 
+  const doPause = async () => {
+    try {
+      await pauseCampaign(accId);
+      setPaused(true);
+      toast("Campaign paused", "info");
+    } catch { toast("Pause failed", "error"); }
+  };
+
+  const doResume = async () => {
+    try {
+      await resumeCampaign(accId);
+      setPaused(false);
+      toast("Campaign resumed 🚀", "success");
+    } catch { toast("Resume failed", "error"); }
+  };
+
   const doStop = async () => {
     try {
       await stopCampaign(accId);
@@ -184,6 +202,7 @@ export default function AccountPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {paused && <span className="tag tag-warn">⏸ PAUSED</span>}
             <span className={`tag ${status === "Running" ? "tag-ok" : status === "Scheduled" ? "tag-warn" : status === "Error" ? "tag-err" : "tag-neutral"}`}>
               {status}
             </span>
@@ -225,8 +244,13 @@ export default function AccountPage() {
                   <button onClick={doStart} className="btn btn-success">
                     ▶ {status === "Scheduled" ? "Start Now" : "Start"}
                   </button>
+                ) : paused ? (
+                  <button onClick={doResume} className="btn btn-success">▶ Resume</button>
                 ) : (
-                  <button onClick={() => setConfirmStop(true)} className="btn btn-danger">⏹ Stop</button>
+                  <>
+                    <button onClick={doPause} className="btn">⏸ Pause</button>
+                    <button onClick={() => setConfirmStop(true)} className="btn btn-danger">⏹ Stop</button>
+                  </>
                 )}
                 <button onClick={save} disabled={saving} className="btn btn-primary">
                   {saving ? "Saving…" : "💾 Save"}
