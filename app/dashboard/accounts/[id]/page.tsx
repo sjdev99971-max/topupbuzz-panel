@@ -23,7 +23,7 @@ export default function AccountPage() {
   const [selected, setSelected] = useState<number[]>([]);
   const [source, setSource] = useState("");
   const [sourceTitle, setSourceTitle] = useState("");
-  const [interval_, setInterval] = useState(5);
+  const [intervalMin, setIntervalMin] = useState(5);
   const [status, setStatus] = useState("Stopped");
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,7 +38,7 @@ export default function AccountPage() {
         setAccount(acc);
         setSource(camp.source || "");
         setSourceTitle(camp.source_title || "");
-        setInterval(camp.interval_min || 5);
+        setIntervalMin(camp.interval_min || 5);
         setStatus(camp.status || "Stopped");
         const grps = camp.groups_json || [];
         setSelected(Array.isArray(grps) ? grps.map((g: any) => g.id) : []);
@@ -81,7 +81,7 @@ export default function AccountPage() {
         source: source || null,
         source_title: sourceTitle,
         groups: chosen,
-        interval_min: interval_,
+        interval_min: intervalMin,
       });
       toast(`saved — ${chosen.length} groups`, "success");
     } catch { toast("save failed", "error"); }
@@ -171,16 +171,16 @@ export default function AccountPage() {
               <h3 className="text-sm mb-3"><span className="text-[var(--dim)]">&gt;</span> interval</h3>
               <div className="flex items-center gap-3 flex-wrap">
                 {[5, 10, 15, 30, 60].map(v => (
-                  <button key={v} onClick={() => setInterval(v)}
-                    className={`btn btn-sm ${interval_ === v ? "btn-primary" : ""}`}>{v}m</button>
+                  <button key={v} onClick={() => setIntervalMin(v)}
+                    className={`btn btn-sm ${intervalMin === v ? "btn-primary" : ""}`}>{v}m</button>
                 ))}
-                <input type="number" min={1} max={1440} value={interval_}
-                  onChange={e => setInterval(+e.target.value)}
+                <input type="number" min={1} max={1440} value={intervalMin}
+                  onChange={e => setIntervalMin(+e.target.value)}
                   className="inp text-xs py-1.5 max-w-[100px]" />
                 <span className="text-xs text-[var(--dim)]">minutes</span>
               </div>
               <p className="text-[10px] text-[var(--dim2)] mt-2">
-                প্রতি {interval_} মিনিট পর পর selected সব groups-এ একসাথে message পাঠানো হবে।
+                প্রতি {intervalMin} মিনিট পর পর selected সব groups-এ একসাথে message পাঠানো হবে।
               </p>
             </div>
 
