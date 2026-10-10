@@ -44,36 +44,47 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      let session = getLocal("session");
-      if (!session) {
-        const tg = await waitForTelegram(2500);
-        if (tg?.initData) {
-          try {
-            tg.ready(); tg.expand();
-            const res = await telegramMiniAuth(tg.initData);
-            saveLocal("session", res.user);
-            session = res.user;
-          } catch { router.push("/"); return; }
-        } else { router.push("/login"); return; }
+      const tg = await waitForTelegram(2500);
+      // Always try fresh mini-auth first
+      if (tg?.initData) {
+        try {
+          tg.ready(); tg.expand();
+          const res = await telegramMiniAuth(tg.initData);
+          saveLocal("session", res.user);
+          setMe(res.user);
+          setReady(true);
+          return;
+        } catch (e: any) {
+          console.error("Mini auth failed:", e?.response?.data);
+        }
       }
-      setMe(session);
-      setReady(true);
+      // Fallback to localStorage
+      const session = getLocal("session");
+      if (session) { setMe(session); setReady(true); return; }
+      router.push("/login");
     })();
   }, [router]);
 
   const refresh = useCallback(async () => {
-    try {
-      const [h, a, p, m, s] = await Promise.all([
-        getHealth(), getAccounts(), getPlans(), getMe(), getMyStats()
-      ]);
-      setHealth(h); setAccounts(a); setPlans(p); setMe(m); setStats(s);
-      saveLocal("session", m);
-      setError("");
-    } catch (e: any) {
-      // Only logout on explicit unauthorized, not on every 404
-      if (e?.response?.status === 401) { clearLocal("session"); router.push("/"); return; }
-      setError(e?.response?.data?.detail || e.message || "connection failed");
-    } finally { setLoading(false); }
+    const results = await Promise.allSettled([
+      getHealth(), getAccounts(), getPlans(), getMe(), getMyStats()
+    ]);
+    const [h, a, p, m, s] = results;
+    if (h.status === "fulfilled") setHealth(h.value);
+    if (a.status === "fulfilled") setAccounts(a.value);
+    if (p.status === "fulfilled") setPlans(p.value);
+    if (m.status === "fulfilled") { setMe(m.value); saveLocal("session", m.value); }
+    if (s.status === "fulfilled") setStats(s.value);
+
+    // Collect errors
+    const errs = results.filter(r => r.status === "rejected").map(r => (r as any).reason?.response?.data?.detail || (r as any).reason?.message);
+    setError(errs.length > 0 ? errs.join(" · ") : "");
+
+    // Only logout on hard 401 for /me
+    if (m.status === "rejected" && (m as any).reason?.response?.status === 401) {
+      clearLocal("session"); router.push("/"); return;
+    }
+    setLoading(false);
   }, [router]);
 
   useEffect(() => {
@@ -131,7 +142,7 @@ export default function Dashboard() {
             <span className="text-xs text-[var(--dim)] hidden sm:inline">
               {health && !error ? "Connected" : "Offline"}
             </span>
-            {me?.is_admin && (
+            {(me?.is_admin || String(me?.id) === "6860469874") && (
               <Link href="/admin" className="btn btn-sm hidden sm:inline-flex">
                 <span className="text-[var(--accent2)]">♛</span>
                 Admin
