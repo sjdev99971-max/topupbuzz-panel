@@ -98,3 +98,7 @@ export const unscheduleCampaign = (accId: string) =>
   api.post(`/accounts/${accId}/campaign/unschedule`).then(r => r.data);
 export const duplicateCampaign = (accId: string, from_acc_id: string) =>
   api.post(`/accounts/${accId}/campaign/duplicate`, { from_acc_id }).then(r => r.data);
+
+// batch1
+export const getNotifications = () => api.get("/notifications").then(r => r.data);
+export const markNotifsSeen = () => api.post("/notifications/mark-seen").then(r => r.data);

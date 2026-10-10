@@ -4,6 +4,9 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
+import NotificationBell from "@/components/NotificationBell";
+import RefreshButton from "@/components/RefreshButton";
+import { filterAccounts, sortAccounts } from "@/lib/filters";
 import StealthBanner from "@/components/StealthBanner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkelList } from "@/components/Skeleton";
@@ -158,6 +161,8 @@ export default function Dashboard() {
                 Admin
               </Link>
             )}
+            <NotificationBell />
+            <RefreshButton onRefresh={refresh} />
             <ThemeToggle />
             <button onClick={logout} className="btn btn-sm btn-ghost">
               <span className="hidden sm:inline">Logout</span>
@@ -329,7 +334,8 @@ function Overview({ me, stats, accounts, loading }: any) {
 /* ============ ACCOUNTS ============ */
 function Accounts({ accounts, loading, router, onDelete, onCopySession, refresh }: any) {
   const [q, setQ] = useState("");
-  const filtered = q ? accounts.filter((a: any) => a.phone.includes(q)) : accounts;
+  const [sortBy, setSortBy] = useState<"created" | "phone" | "health">("created");
+  const filtered = sortAccounts(filterAccounts(accounts, q), sortBy);
 
   return (
     <div className="fade space-y-5">
@@ -339,8 +345,14 @@ function Accounts({ accounts, loading, router, onDelete, onCopySession, refresh 
           <p className="text-sm text-[var(--dim)] mt-0.5">{accounts.length} registered</p>
         </div>
         <div className="flex items-center gap-2">
-          <input className="inp text-xs py-2 max-w-[160px]" placeholder="Search…"
+          <input className="inp text-xs py-2 max-w-[140px]" placeholder="Search…"
             value={q} onChange={e => setQ(e.target.value)} />
+          <select className="inp text-xs py-2 max-w-[110px]"
+            value={sortBy} onChange={e => setSortBy(e.target.value as any)}>
+            <option value="created">Newest</option>
+            <option value="phone">Phone</option>
+            <option value="health">Health</option>
+          </select>
           <button onClick={refresh} className="btn btn-sm" title="Refresh">↻</button>
           <button onClick={() => router.push("/login")} className="btn btn-primary btn-sm">+ Add</button>
         </div>
