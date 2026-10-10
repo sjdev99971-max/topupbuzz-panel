@@ -89,11 +89,23 @@ export default function AccountPage() {
   };
 
   const doStart = async () => {
+    if (!source || !source.trim()) {
+      toast("Set source channel first", "error");
+      return;
+    }
+    if (selected.length === 0) {
+      toast("Select at least one group", "error");
+      return;
+    }
     try {
+      // Auto-save before start
+      await save();
       await startCampaign(accId);
       setStatus("Running");
-      toast("campaign started 🚀", "success");
-    } catch (e: any) { toast("start failed: " + (e?.response?.data?.detail || ""), "error"); }
+      toast("Campaign started 🚀", "success");
+    } catch (e: any) {
+      toast("Start failed: " + (e?.response?.data?.detail || e.message), "error");
+    }
   };
 
   const doStop = async () => {
