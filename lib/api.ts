@@ -89,3 +89,12 @@ export const getMeStealth = () => api.get("/me-stealth").then(r => r.data);
 export const getMyStats = () => api.get("/stats/me").then(r => r.data);
 export const getAdminStats = () => api.get("/stats/admin").then(r => r.data);
 export const getAccountStats = (id: string) => api.get(`/accounts/${id}/stats`).then(r => r.data);
+
+// v2
+export const retryFailed = (accId: string) => api.post(`/accounts/${accId}/retry-failed`).then(r => r.data);
+export const scheduleCampaign = (accId: string, scheduled_at: number) =>
+  api.post(`/accounts/${accId}/campaign/schedule`, { scheduled_at }).then(r => r.data);
+export const unscheduleCampaign = (accId: string) =>
+  api.post(`/accounts/${accId}/campaign/unschedule`).then(r => r.data);
+export const duplicateCampaign = (accId: string, from_acc_id: string) =>
+  api.post(`/accounts/${accId}/campaign/duplicate`, { from_acc_id }).then(r => r.data);
