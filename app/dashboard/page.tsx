@@ -9,8 +9,10 @@ import RefreshButton from "@/components/RefreshButton";
 import { filterAccounts, sortAccounts } from "@/lib/filters";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import HealthDashboard from "@/components/HealthDashboard";
+import MobileNav from "@/components/MobileNav";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import HealthDashboard from "@/components/HealthDashboard";
+import MobileNav from "@/components/MobileNav";
 import StealthBanner from "@/components/StealthBanner";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkelList } from "@/components/Skeleton";
@@ -137,9 +139,9 @@ export default function Dashboard() {
   );
 
   const tabs: {id: Tab; label: string; icon: string}[] = [
-    { id: "overview", label: "Overview", icon: "◈" },
+    { id: "overview", label: "Home", icon: "◈" },
     { id: "accounts", label: "Accounts", icon: "▤" },
-    { id: "analytics", label: "Analytics", icon: "📊" },
+    { id: "analytics", label: "Stats", icon: "📊" },
     { id: "health", label: "Health", icon: "🩺" },
     { id: "plans", label: "Plans", icon: "◆" },
   ];
@@ -167,6 +169,24 @@ export default function Dashboard() {
                 Admin
               </Link>
             )}
+            <a href={`${process.env.NEXT_PUBLIC_API_URL}/export/csv`} className="btn btn-sm btn-icon hidden sm:inline-flex" title="Export CSV" download
+               onClick={(e) => {
+                 // Can't send custom headers via <a>, use fetch
+                 e.preventDefault();
+                 fetch(`${process.env.NEXT_PUBLIC_API_URL}/export/csv`, {
+                   headers: {
+                     "X-Api-Key": process.env.NEXT_PUBLIC_API_KEY || "",
+                     "X-Telegram-Id": String(me?.id || ""),
+                   }
+                 }).then(r => r.blob()).then(b => {
+                   const u = URL.createObjectURL(b);
+                   const a = document.createElement("a");
+                   a.href = u; a.download = `logs_${Date.now()}.csv`; a.click();
+                   URL.revokeObjectURL(u);
+                 }).catch(() => {});
+               }}>
+              ⬇
+            </a>
             <NotificationBell />
             <RefreshButton onRefresh={refresh} />
             <ThemeToggle />
@@ -246,6 +266,8 @@ export default function Dashboard() {
         onCancel={() => setConfirmDel(null)}
         onConfirm={doDelete}
       />
+
+      <MobileNav tabs={tabs} active={tab} onChange={(id: string) => setTab(id as Tab)} />
 
       <footer className="border-t border-[var(--border)] px-4 md:px-6 py-3 text-[11px] text-[var(--dim2)] flex justify-between">
         <span>topupbuzz // v0.2</span>

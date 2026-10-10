@@ -8,6 +8,7 @@ import { toast } from "@/components/Toast";
 import { SkelList } from "@/components/Skeleton";
 import ThemeToggle from "@/components/ThemeToggle";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import WebhooksPanel from "@/components/WebhooksPanel";
 import {
   getAccount, getCampaign, saveCampaign, startCampaign, stopCampaign,
   refreshDialogs, getLogs, getLogsCsv, getLocal, getAccountStats,
@@ -328,6 +329,9 @@ export default function AccountPage() {
                 </div>
               </div>
             </div>
+
+            {/* WEBHOOKS */}
+            <WebhooksPanel />
 
             {/* SOURCE */}
             <div className="card">

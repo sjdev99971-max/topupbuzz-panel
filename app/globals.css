@@ -455,3 +455,57 @@ body::after {
   background: radial-gradient(ellipse, rgba(122, 162, 247, 0.08), transparent 70%);
   pointer-events: none; z-index: 0; filter: blur(60px);
 }
+
+
+/* Mobile bottom nav spacing */
+@media (max-width: 768px) {
+  body { padding-bottom: 72px; }
+}
+
+/* Smooth tab transitions */
+.fade { animation: fade 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* Card list stagger */
+.stagger > * {
+  animation: fade 0.35s ease-out backwards;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.04s; }
+.stagger > *:nth-child(3) { animation-delay: 0.06s; }
+.stagger > *:nth-child(4) { animation-delay: 0.08s; }
+.stagger > *:nth-child(5) { animation-delay: 0.10s; }
+.stagger > *:nth-child(6) { animation-delay: 0.12s; }
+
+/* Button ripple-ish */
+.btn-primary, .btn-success {
+  position: relative;
+  overflow: hidden;
+}
+.btn-primary::after, .btn-success::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at center, rgba(255,255,255,0.15), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.btn-primary:hover::after, .btn-success:hover::after { opacity: 1; }
+
+/* Tag pulse animation on new */
+@keyframes tag-pop {
+  0% { transform: scale(0.8); }
+  60% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+.tag-new { animation: tag-pop 0.4s ease-out; }
+
+/* Smooth theme transition */
+body, .card, .stat, .btn, .inp, .modal, .toast {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+/* Number scroll */
+@keyframes num-pop {
+  0% { transform: translateY(4px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+.num-anim { animation: num-pop 0.4s ease-out; }
