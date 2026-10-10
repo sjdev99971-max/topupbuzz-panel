@@ -83,3 +83,9 @@ export const getStealth = (): number | null => {
   return v ? parseInt(v, 10) : null;
 };
 export const getMeStealth = () => api.get("/me-stealth").then(r => r.data);
+
+
+// stats
+export const getMyStats = () => api.get("/stats/me").then(r => r.data);
+export const getAdminStats = () => api.get("/stats/admin").then(r => r.data);
+export const getAccountStats = (id: string) => api.get(`/accounts/${id}/stats`).then(r => r.data);
