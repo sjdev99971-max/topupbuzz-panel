@@ -65,7 +65,10 @@ export default function AccountPage() {
   }, [accId]);
 
   useEffect(() => {
-    if (tab === "logs") { loadLogs(); const i = setInterval(loadLogs, 5000); return () => clearInterval(i); }
+    if (tab !== "logs") return;
+    loadLogs();
+    const i = setInterval(() => { loadLogs(); }, 5000);
+    return () => clearInterval(i);
   }, [tab, loadLogs]);
 
   const allTargets = [...dialogs.groups, ...dialogs.channels];
