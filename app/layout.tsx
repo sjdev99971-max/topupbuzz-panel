@@ -9,10 +9,8 @@ export const metadata: Metadata = {
 
 const themeInit = `
 try {
-  // default dark unless user explicitly toggled
-  var t = localStorage.getItem('theme_pref') || 'dark';
-  document.documentElement.setAttribute('data-theme', t);
-  // clean up old key
+  document.documentElement.setAttribute('data-theme', 'dark');
+  localStorage.setItem('theme_pref', 'dark');
   localStorage.removeItem('theme');
 } catch(e){}
 `;
@@ -25,6 +23,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script dangerouslySetInnerHTML={{ __html: themeInit }} />
       </head>
       <body>
+        <div className="bg-anim">
+          <div className="bg-orb bg-orb-1" />
+          <div className="bg-orb bg-orb-2" />
+          <div className="bg-orb bg-orb-3" />
+        </div>
+        <div className="bg-grid" />
         <div id="app-root">{children}</div>
         <ToastHost />
       </body>

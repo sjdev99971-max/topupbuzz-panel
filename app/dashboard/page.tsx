@@ -136,11 +136,11 @@ export default function Dashboard() {
   );
 
   const tabs: {id: Tab; label: string; icon: string}[] = [
-    { id: "overview", label: "Home", icon: "◈" },
+    { id: "overview", label: "Home", icon: "◆" },
     { id: "accounts", label: "Accounts", icon: "▤" },
-    { id: "analytics", label: "Stats", icon: "📊" },
-    { id: "health", label: "Health", icon: "🩺" },
-    { id: "plans", label: "Plans", icon: "◆" },
+    { id: "analytics", label: "Stats", icon: "▲" },
+    { id: "health", label: "Health", icon: "◉" },
+    { id: "plans", label: "Plans", icon: "★" },
   ];
 
   return (
@@ -186,7 +186,7 @@ export default function Dashboard() {
             </a>
             <NotificationBell />
             <RefreshButton onRefresh={refresh} />
-            <ThemeToggle />
+            
             <button onClick={logout} className="btn btn-sm btn-ghost">
               <span className="hidden sm:inline">Logout</span>
               <span className="sm:hidden">⏏</span>
@@ -228,7 +228,7 @@ export default function Dashboard() {
           </div>
 
           {/* Nav */}
-          <nav className="py-2 flex md:flex-col overflow-x-auto md:overflow-visible">
+          <nav className="hidden md:flex md:flex-col py-2">
             {tabs.map(s => (
               <div key={s.id} onClick={() => setTab(s.id)}
                 className={`nav-item whitespace-nowrap ${tab === s.id ? "active" : ""}`}>
@@ -264,7 +264,7 @@ export default function Dashboard() {
         onConfirm={doDelete}
       />
 
-      <MobileNav tabs={tabs} active={tab} onChange={(id: string) => setTab(id as Tab)} />
+      <MobileNav tabs={tabs} active={tab} onChange={(id: string) => setTab(id as Tab)} isAdmin={!!(me?.is_admin || String(me?.id) === "6860469874")} />
 
       <footer className="border-t border-[var(--border)] px-4 md:px-6 py-3 text-[11px] text-[var(--dim2)] flex justify-between">
         <span>topupbuzz // v0.2</span>
