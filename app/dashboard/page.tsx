@@ -70,16 +70,16 @@ export default function Dashboard() {
       saveLocal("session", m);
       setError("");
     } catch (e: any) {
-      if (e?.response?.status === 404) { clearLocal("session"); router.push("/"); return; }
-      setError(e.message);
+      // Only logout on explicit unauthorized, not on every 404
+      if (e?.response?.status === 401) { clearLocal("session"); router.push("/"); return; }
+      setError(e?.response?.data?.detail || e.message || "connection failed");
     } finally { setLoading(false); }
   }, [router]);
 
   useEffect(() => {
     if (!ready) return;
     refresh();
-    const id = setInterval(refresh, 20000);
-    return () => clearInterval(id);
+    // Auto-refresh removed for mobile performance
   }, [ready, refresh]);
 
   const logout = () => { clearLocal("session"); clearLocal("stealth_id"); router.push("/"); };

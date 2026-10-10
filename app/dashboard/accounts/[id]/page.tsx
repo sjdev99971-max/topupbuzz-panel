@@ -81,8 +81,9 @@ export default function AccountPage() {
   }, [accId]);
 
   useEffect(() => {
-    if (tab === "logs") { loadLogs(); const i = setInterval(loadLogs, 5000); return () => clearInterval(i); }
-    if (tab === "stats") { loadStats(); }
+    if (tab === "logs") loadLogs();
+    if (tab === "stats") loadStats();
+    // Polling removed; user can manually refresh
   }, [tab, loadLogs, loadStats]);
 
   const allTargets = [...dialogs.groups, ...dialogs.channels];

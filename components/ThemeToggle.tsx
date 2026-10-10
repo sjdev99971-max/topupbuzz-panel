@@ -5,9 +5,12 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
-    const t = (localStorage.getItem("theme") as "dark" | "light") || "dark";
+    // Force dark on first visit ever; respect user toggle only if they've actively switched
+    const stored = localStorage.getItem("theme");
+    const t = stored === "light" ? "light" : "dark";
     setTheme(t);
     document.documentElement.setAttribute("data-theme", t);
+    if (!stored) localStorage.setItem("theme", "dark");
   }, []);
 
   const toggle = () => {

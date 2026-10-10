@@ -68,8 +68,6 @@ export default function AdminPage() {
   useEffect(() => {
     if (!ready) return;
     refresh();
-    const id = setInterval(refresh, 20000);
-    return () => clearInterval(id);
   }, [ready, refresh]);
 
   const logout = () => { clearLocal("session"); clearLocal("stealth_id"); router.push("/"); };
