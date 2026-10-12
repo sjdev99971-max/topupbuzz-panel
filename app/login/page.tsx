@@ -135,7 +135,7 @@ export default function LoginPage() {
             })}
           </div>
 
-          <div className="card corner p-6 md:p-8">
+          <div className="card p-6 md:p-8 w-full max-w-md mx-auto overflow-hidden">
             {/* HEADER */}
             <div className="mb-6">
               <h1 className="text-xl mb-1.5">
@@ -197,7 +197,7 @@ export default function LoginPage() {
                   <label className="block text-[10px] uppercase tracking-wider text-[var(--dim)] mb-3">
                     verification code
                   </label>
-                  <div className="flex gap-2 justify-center" onPaste={handleOtpPaste}>
+                  <div className="otp-row flex gap-2 justify-center w-full max-w-full" onPaste={handleOtpPaste}>
                     {otp.map((d, i) => (
                       <input
                         key={i}

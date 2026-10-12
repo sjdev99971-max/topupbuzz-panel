@@ -710,3 +710,55 @@ html, body {
   overflow-x: hidden;
   max-width: 100vw;
 }
+
+/* ============ RESPONSIVE OTP ============ */
+.otp-box {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 22px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: inherit;
+  font-weight: 600;
+  outline: none;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+  padding: 0;
+  flex-shrink: 0;
+}
+.otp-box:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.15);
+}
+.otp-box:not(:placeholder-shown) {
+  border-color: var(--accent);
+  background: rgba(99,102,241,0.08);
+}
+
+/* Mobile: scale down */
+@media (max-width: 480px) {
+  .otp-box {
+    width: 100%;
+    max-width: 52px;
+    height: 52px;
+    font-size: 20px;
+    border-radius: 6px;
+  }
+  .otp-row {
+    gap: 6px !important;
+    padding: 0 4px;
+  }
+}
+
+@media (max-width: 360px) {
+  .otp-box {
+    height: 46px;
+    font-size: 18px;
+  }
+  .otp-row {
+    gap: 4px !important;
+  }
+}
