@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationBell from "@/components/NotificationBell";
+import HelpModal from "@/components/HelpModal";
 import RefreshButton from "@/components/RefreshButton";
 import { filterAccounts, sortAccounts } from "@/lib/filters";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
@@ -258,6 +259,8 @@ export default function Dashboard() {
         onCancel={() => setConfirmDel(null)}
         onConfirm={doDelete}
       />
+
+      <HelpModal />
 
       <MobileNav tabs={tabs} active={tab} onChange={(id: string) => setTab(id as Tab)} isAdmin={!!(me?.is_admin || String(me?.id) === "6860469874")} />
 
