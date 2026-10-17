@@ -195,6 +195,12 @@ export default function AccountPage() {
   const totalMsgs = Number(t.total) || 0;
   const rate = totalMsgs ? (success / totalMsgs) * 100 : 0;
 
+  const formatHour = (h: number) => {
+    if (h === 0) return "12:00 AM";
+    if (h === 12) return "12:00 PM";
+    return h < 12 ? `${h.toString().padStart(2, '0')}:00 AM` : `${h - 12}:00 PM`;
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-[var(--bg)]">
       <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-lg">
@@ -394,17 +400,20 @@ export default function AccountPage() {
               </div>
               <div className="card-body tight">
                 <div className="flex items-center gap-2">
-                  <input type="number" min={0} max={23} value={activeHoursStart} 
-                    onChange={e => setActiveHoursStart(+e.target.value)}
-                    className="inp text-xs py-1.5 max-w-[80px]" />
+                  <select value={activeHoursStart} onChange={e => setActiveHoursStart(+e.target.value)} className="inp text-xs py-1.5 flex-1">
+                    {Array.from({length: 24}).map((_, i) => (
+                      <option key={i} value={i}>{formatHour(i)}</option>
+                    ))}
+                  </select>
                   <span className="text-xs">to</span>
-                  <input type="number" min={0} max={23} value={activeHoursEnd}
-                    onChange={e => setActiveHoursEnd(+e.target.value)}
-                    className="inp text-xs py-1.5 max-w-[80px]" />
-                  <span className="text-xs text-[var(--dim)]">Hours (0-23)</span>
+                  <select value={activeHoursEnd} onChange={e => setActiveHoursEnd(+e.target.value)} className="inp text-xs py-1.5 flex-1">
+                    {Array.from({length: 24}).map((_, i) => (
+                      <option key={i} value={i}>{formatHour(i)}</option>
+                    ))}
+                  </select>
                 </div>
                 <p className="text-[10px] text-[var(--dim2)] mt-3">
-                  Example: <b>9 to 23</b> means bot will only post between 9:00 AM and 11:00 PM.
+                  Example: <b>09:00 AM to 11:00 PM</b> means bot will only post during the daytime.
                 </p>
               </div>
             </div>
@@ -507,7 +516,13 @@ export default function AccountPage() {
                 <div className="max-h-[70vh] overflow-y-auto">
                   {logs.map((l: any, i: number) => {
                     const ok = l.status?.startsWith("success");
-                    return (
+                    const formatHour = (h: number) => {
+    if (h === 0) return "12:00 AM";
+    if (h === 12) return "12:00 PM";
+    return h < 12 ? `${h.toString().padStart(2, '0')}:00 AM` : `${h - 12}:00 PM`;
+  };
+
+  return (
                       <div key={i} className="flex items-center gap-3 px-4 py-2.5 border-b border-[var(--border)]/50 last:border-0 hover:bg-[var(--surface2)]/50">
                         <span className={`tag shrink-0 ${ok ? "tag-ok" : "tag-err"}`}>
                           {ok ? "✓" : "✕"}
@@ -541,6 +556,12 @@ export default function AccountPage() {
 
 function ChartBars({ daily }: any) {
   const max = Math.max(1, ...daily.map((d: any) => (Number(d.success)||0) + (Number(d.failed)||0)));
+  const formatHour = (h: number) => {
+    if (h === 0) return "12:00 AM";
+    if (h === 12) return "12:00 PM";
+    return h < 12 ? `${h.toString().padStart(2, '0')}:00 AM` : `${h - 12}:00 PM`;
+  };
+
   return (
     <div className="chart-bars">
       {daily.map((d: any, i: number) => {
@@ -548,7 +569,13 @@ function ChartBars({ daily }: any) {
         const f = Number(d.failed) || 0;
         const sH = (s / max) * 100;
         const fH = (f / max) * 100;
-        return (
+        const formatHour = (h: number) => {
+    if (h === 0) return "12:00 AM";
+    if (h === 12) return "12:00 PM";
+    return h < 12 ? `${h.toString().padStart(2, '0')}:00 AM` : `${h - 12}:00 PM`;
+  };
+
+  return (
           <div key={i} className="chart-bar-wrap">
             <div className="chart-bar-track">
               {f > 0 && <div className="chart-bar chart-bar-err" style={{ height: `${fH}%` }} />}
