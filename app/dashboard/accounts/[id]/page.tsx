@@ -26,6 +26,9 @@ export default function AccountPage() {
   const [selected, setSelected] = useState<number[]>([]);
   const [source, setSource] = useState("");
   const [sourceTitle, setSourceTitle] = useState("");
+  const [sourceType, setSourceType] = useState("channel");
+  const [activeHoursStart, setActiveHoursStart] = useState(0);
+  const [activeHoursEnd, setActiveHoursEnd] = useState(23);
   const [intervalMin, setIntervalMin] = useState(5);
   const [mode, setMode] = useState<"copy" | "forward">("copy");
   const [status, setStatus] = useState("Stopped");
@@ -98,6 +101,8 @@ export default function AccountPage() {
       const res = await saveCampaign(accId, {
         source: source || null,
         source_title: sourceTitle,
+        active_hours_start: activeHoursStart,
+        active_hours_end: activeHoursEnd,
         groups: chosen,
         interval_min: intervalMin,
         mode: mode,
@@ -375,6 +380,31 @@ export default function AccountPage() {
                 </div>
                 <p className="text-[10px] text-[var(--dim2)] mt-3">
                   সব groups-এ <b>একসাথে</b> পাঠানো হবে প্রতি {intervalMin} মিনিটে।
+                </p>
+              </div>
+            </div>
+
+            {/* ACTIVE HOURS */}
+            <div className="card">
+              <div className="card-header">
+                <div>
+                  <h3>🕒 Active Hours (Sleep Mode)</h3>
+                  <div className="sub">Time of day to send posts</div>
+                </div>
+              </div>
+              <div className="card-body tight">
+                <div className="flex items-center gap-2">
+                  <input type="number" min={0} max={23} value={activeHoursStart} 
+                    onChange={e => setActiveHoursStart(+e.target.value)}
+                    className="inp text-xs py-1.5 max-w-[80px]" />
+                  <span className="text-xs">to</span>
+                  <input type="number" min={0} max={23} value={activeHoursEnd}
+                    onChange={e => setActiveHoursEnd(+e.target.value)}
+                    className="inp text-xs py-1.5 max-w-[80px]" />
+                  <span className="text-xs text-[var(--dim)]">Hours (0-23)</span>
+                </div>
+                <p className="text-[10px] text-[var(--dim2)] mt-3">
+                  Example: <b>9 to 23</b> means bot will only post between 9:00 AM and 11:00 PM.
                 </p>
               </div>
             </div>
