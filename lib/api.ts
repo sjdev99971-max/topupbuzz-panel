@@ -129,3 +129,8 @@ export const downloadFolderFile = async (folder_id: number) => {
   link.click();
   link.remove();
 };
+
+
+export const adminDemoteUser = async (uid: number) => {
+  return await apiCall('/admin/demote-user', 'POST', { user_id: uid });
+};
