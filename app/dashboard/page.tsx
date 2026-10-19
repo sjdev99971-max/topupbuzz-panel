@@ -6,7 +6,7 @@ import Link from "next/link";
 import { 
   Home, Layers, Send, MessageCircle, User, TrendingUp, CalendarClock, 
   Folder, FileText, Settings, ShieldAlert, ChevronRight, PenTool, Link as LinkIcon, 
-  CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn, Clock, Zap 
+  CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn, Clock, Zap, HelpCircle, X 
 } from "lucide-react";
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
@@ -640,6 +640,9 @@ function MeTab({ me }: any) {
   const [maxRetries, setMaxRetries] = useState(me?.settings?.max_retries || 3);
   const [notifications, setNotifications] = useState(me?.settings?.notifications ?? true);
   const [savingSettings, setSavingSettings] = useState(false);
+
+  // Help Modal State
+  const [helpData, setHelpData] = useState<any>(null);
   
   const [plans, setPlans] = useState<any[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
@@ -705,64 +708,91 @@ function MeTab({ me }: any) {
     window.open("https://t.me/DEVELOPER_JAHID_BHAI", "_blank");
   };
 
+  // Helper component for Help Icon
+  const HelpIcon = ({ title, desc, example }: any) => (
+    <button onClick={() => setHelpData({ title, desc, example })} className="text-white/40 hover:text-white transition-colors ml-1">
+      <HelpCircle size={16} />
+    </button>
+  );
+
   if (showSettings) {
     return (
-      <div className="space-y-4 pb-20">
+      <div className="space-y-4 pb-20 relative">
         <div className="flex items-center gap-3 mb-4">
            <button onClick={() => setShowSettings(false)} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
            <h2 className="text-xl font-bold text-white">Settings</h2>
         </div>
 
-        <div className="bg-[#1cd45a]/10 border border-[#1cd45a]/30 rounded-2xl p-4 text-sm text-white/80 space-y-2">
-           <div className="flex items-center gap-2 text-[#1cd45a] font-bold mb-1">
-              <ShieldAlert size={18} /> টেলিগ্রাম সেফটি গাইডলাইন
+        {/* Animated Warning Notice */}
+        <div className="bg-red-500/10 border-2 border-red-500/50 rounded-2xl p-4 text-sm text-white/80 space-y-2 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+           <div className="flex items-center gap-2 text-red-400 font-bold mb-1">
+              <ShieldAlert size={18} /> টেলিগ্রাম সেফটি গাইডলাইন (গুরুত্বপূর্ণ)
            </div>
            <p>টেলিগ্রামের স্প্যাম ফিল্টার অত্যন্ত কড়া। একসাথে অনেকগুলো পোস্ট পাঠালে বা খুব কম সময়ের মধ্যে পর পর পোস্ট পাঠালে আপনার অ্যাকাউন্ট <strong>Restricted বা Ban</strong> খেতে পারে।</p>
-           <p className="text-xs text-yellow-400 mt-2">💡 <strong>সেরা সেটিংস:</strong> ডিলে সর্বনিম্ন ৫ মিনিট, সেফ ১০ মিনিট। একসাথে সর্বোচ্চ ৩টি পোস্ট পাঠানো নিরাপদ।</p>
         </div>
 
         <div className="glass-card p-5 space-y-6">
-           {/* Active Hours (Night Mode) */}
+           {/* Active Hours */}
            <div>
-              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><CalendarClock size={16}/> Active Hours (Night Mode)</label>
+              <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                 <CalendarClock size={16} className="mr-2"/> Active Hours (Night Mode)
+                 <HelpIcon title="Active Hours" desc="কোন সময়ে বট পোস্ট করবে।" example="সকাল ৮টা থেকে রাত ১১টা দিলে, এই সময়ের বাইরে বট কোনো পোস্ট পাঠাবে না।" />
+              </label>
               <div className="flex items-center gap-2">
                  <input type="time" value={activeStart} onChange={e => setActiveStart(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
                  <span className="text-white/50">to</span>
                  <input type="time" value={activeEnd} onChange={e => setActiveEnd(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
               </div>
-              <p className="text-[11px] text-white/50 mt-1">এই সময়ের বাইরে বট কোনো পোস্ট পাঠাবে না।</p>
            </div>
 
            {/* Forward Mode */}
            <div className="border-t border-white/5 pt-4">
-              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Send size={16}/> Forward Mode</label>
+              <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                 <Send size={16} className="mr-2"/> Forward Mode
+                 <HelpIcon title="Forward Mode" desc="মেসেজ পাঠানোর ধরন।" example="Copy দিলে 'Forwarded from' লেখা থাকবে না। Forward দিলে ট্যাগ সহ যাবে।" />
+              </label>
               <div className="grid grid-cols-2 gap-2">
                  <button onClick={() => setForwardMode("copy")} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${forwardMode === "copy" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Copy (No Tag)</button>
                  <button onClick={() => setForwardMode("forward")} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${forwardMode === "forward" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Forward (With Tag)</button>
               </div>
            </div>
 
-           {/* Batch Size */}
+           {/* Batch Size - Custom Input */}
            <div className="border-t border-white/5 pt-4">
-              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Zap size={16}/> Batch Size (একসাথে কতটি পোস্ট)</label>
-              <select value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]">
-                <option value={1}>1 Post (Most Safe)</option>
-                <option value={2}>2 Posts (Balanced)</option>
-                <option value={3}>3 Posts (Recommended Max)</option>
-                <option value={5}>5 Posts (Risky)</option>
-              </select>
+              <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                 <Zap size={16} className="mr-2"/> Batch Size
+                 <HelpIcon title="Batch Size" desc="একসাথে কতগুলো গ্রুপে মেসেজ পাঠাবে।" example="১ দিলে একটার পর একটা যাবে (সবচেয়ে সেফ)। ৩ দিলে ৩টি গ্রুপে একসাথে যাবে।" />
+              </label>
+              <input 
+                type="number" 
+                min="1" 
+                max="20"
+                value={batchSize} 
+                onChange={e => setBatchSize(Number(e.target.value))} 
+                placeholder="যেমন: ১" 
+                className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" 
+              />
            </div>
 
            {/* Delay Minutes */}
            <div className="border-t border-white/5 pt-4">
-              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Clock size={16}/> Delay Between Batches (মিনিট)</label>
+              <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                 <Clock size={16} className="mr-2"/> Delay (মিনিট)
+                 <HelpIcon title="Delay" desc="পরবর্তী ব্যাচে যাওয়ার আগে কতক্ষণ অপেক্ষা করবে।" example="১০ দিলে প্রতি ১০ মিনিট পর পর পোস্ট যাবে। ৫ মিনিটের নিচে দিলে ব্লক হওয়ার সম্ভাবনা থাকে।" />
+              </label>
               <input type="number" min="0" value={delayMinutes} onChange={e => setDelayMinutes(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
-              <p className="text-[11px] text-red-400 mt-2 font-bold">সতর্কতা: ৫ মিনিটের নিচে ডিলে দিলে অ্যাকাউন্ট ব্লক হওয়ার সম্ভাবনা থাকে।</p>
+              {/* Animated Warning for Delay */}
+              <div className="mt-2 text-[11px] font-bold text-red-400 bg-red-500/10 p-2 rounded-lg border border-red-500/20 animate-pulse flex items-center gap-1">
+                 <ShieldAlert size={12} /> সতর্কতা: ৫ মিনিটের নিচে ডিলে দিলে অ্যাকাউন্ট ব্লক হতে পারে।
+              </div>
            </div>
 
            {/* Auto Retry */}
            <div className="border-t border-white/5 pt-4">
-              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Zap size={16}/> Auto Retry (Max Attempts)</label>
+              <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                 <Zap size={16} className="mr-2"/> Auto Retry
+                 <HelpIcon title="Auto Retry" desc="পোস্ট ফেইল হলে বট কতবার আবার চেষ্টা করবে।" example="৩ দিলে পোস্ট ফেইল হলে ৩ বার অটোমেটিক আবার পাঠানোর চেষ্টা করবে।" />
+              </label>
               <select value={maxRetries} onChange={e => setMaxRetries(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]">
                 <option value={1}>1 Attempt</option>
                 <option value={3}>3 Attempts (Recommended)</option>
@@ -773,8 +803,10 @@ function MeTab({ me }: any) {
            {/* Notifications */}
            <div className="flex items-center justify-between border-t border-white/5 pt-4">
               <div>
-                 <div className="text-sm font-semibold text-white flex items-center gap-2"><Settings size={16}/> Daily Notifications</div>
-                 <div className="text-[11px] text-white/50 mt-0.5">Get 2 tips/day about Telegram safety.</div>
+                 <div className="text-sm font-semibold text-white flex items-center">
+                    <Settings size={16} className="mr-2"/> Daily Notifications
+                    <HelpIcon title="Notifications" desc="টেলিগ্রামের সেফটি টিপস।" example="দিনে ২ বার বট আপনাকে মেসেজ দিয়ে সতর্ক করবে।" />
+                 </div>
               </div>
               <button onClick={() => setNotifications(!notifications)} className={`w-12 h-6 rounded-full transition-colors relative ${notifications ? 'bg-[var(--accent)]' : 'bg-white/20'}`}>
                 <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${notifications ? 'left-6' : 'left-0.5'}`}></div>
@@ -785,6 +817,24 @@ function MeTab({ me }: any) {
         <button onClick={handleSaveSettings} disabled={savingSettings} className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold flex justify-center items-center mt-4 shadow-[0_0_15px_rgba(28,212,90,0.3)]">
           {savingSettings ? <Loader2 size={20} className="animate-spin" /> : "Save Settings"}
         </button>
+
+        {/* HELP MODAL */}
+        {helpData && (
+          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setHelpData(null)}>
+            <div className="bg-[#111] border border-[#1cd45a]/50 rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-bold text-[var(--accent)]">{helpData.title}</h3>
+                <button onClick={() => setHelpData(null)} className="text-white/50 hover:text-white bg-white/5 p-1 rounded-full"><X size={20}/></button>
+              </div>
+              <p className="text-white text-sm mb-4">{helpData.desc}</p>
+              <div className="bg-[#050505] p-3 rounded-xl border border-white/10">
+                 <p className="text-xs text-[var(--accent)] font-bold mb-1">উদাহরণ:</p>
+                 <p className="text-sm text-white/80">{helpData.example}</p>
+              </div>
+              <button onClick={() => setHelpData(null)} className="w-full mt-6 bg-white/10 text-white font-bold py-3 rounded-xl hover:bg-white/20">বুঝেছি</button>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
