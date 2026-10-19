@@ -120,3 +120,7 @@ export const getSavedPosts = () => api.get("/posts").then(r => r.data);
 export const savePost = (title: string, content: string) => api.post("/posts", { title, content }).then(r => r.data);
 export const getReferralLink = () => api.get("/referral/link").then(r => r.data);
 export const redeemCoins = (days: number, cost: number) => api.post("/redeem-coins", { days, cost }).then(r => r.data);
+
+export const broadcastNow = (payload: any) => api.post("/broadcast-now", payload).then(r => r.data);
+export const getSavedPosts = () => api.get("/saved-posts").then(r => r.data);
+export const createSavedPost = (payload: any) => api.post("/saved-posts", payload).then(r => r.data);
