@@ -109,25 +109,28 @@ export default function Dashboard() {
       {tab === "chats" && <ChatsTab accounts={accounts} />}
       {tab === "me" && <MeTab me={me} />}
 
-      <div className="bottom-nav-glass fixed bottom-0 left-0 right-0 flex justify-around py-3 pb-6 z-50 rounded-t-3xl">
-        {[
-          { id: "home", icon: Home, label: "Home" },
-          { id: "library", icon: Layers, label: "Library" },
-          { id: "broadcast", icon: Send, label: "Broadcast" },
-          { id: "chats", icon: MessageCircle, label: "Chats" },
-          { id: "me", icon: User, label: "Me" }
-        ].map((t) => {
-          const Icon = t.icon;
-          const isActive = tab === t.id;
-          return (
-            <div key={t.id} className={`flex flex-col items-center gap-1 cursor-pointer w-16 transition-colors ${isActive ? "text-[var(--accent)]" : "text-[var(--dim)]"}`} onClick={() => setTab(t.id as Tab)}>
-              <div className={`p-1.5 rounded-xl ${isActive ? "bg-[var(--accent-dim)]" : ""}`}>
-                <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+      {/* Floating Bottom Menu Card */}
+      <div className="fixed bottom-4 left-4 right-4 z-50 flex justify-center pointer-events-none">
+        <div className="bottom-nav-glass flex justify-around items-center py-2 px-2 w-full max-w-md rounded-3xl pointer-events-auto">
+          {[
+            { id: "home", icon: Home, label: "Home" },
+            { id: "library", icon: Layers, label: "Library" },
+            { id: "broadcast", icon: Send, label: "Broadcast" },
+            { id: "chats", icon: MessageCircle, label: "Chats" },
+            { id: "me", icon: User, label: "Me" }
+          ].map((t) => {
+            const Icon = t.icon;
+            const isActive = tab === t.id;
+            return (
+              <div key={t.id} className={`flex flex-col items-center gap-1 cursor-pointer w-16 transition-all duration-300 ${isActive ? "text-[var(--accent)] scale-105" : "text-[var(--dim)] hover:text-white"}`} onClick={() => setTab(t.id as Tab)}>
+                <div className={`p-2 rounded-2xl transition-all ${isActive ? "bg-[var(--accent-dim)] shadow-[0_0_15px_rgba(28,212,90,0.3)]" : ""}`}>
+                  <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                </div>
+                <span className={`text-[10px] ${isActive ? "font-bold" : "font-medium"}`}>{t.label}</span>
               </div>
-              <span className={`text-[10px] ${isActive ? "font-bold" : "font-medium"}`}>{t.label}</span>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -62,14 +62,7 @@ body {
 .nav-item.active { color: var(--accent); }
 
 /* Glassmorphism Effect */
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
-}
+
 
 /* Login Keypad */
 .keypad-btn {
@@ -86,14 +79,7 @@ body {
 .keypad-btn:active { background: rgba(255, 255, 255, 0.15); }
 
 /* Glassmorphism Effect */
-.glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
-}
+
 
 /* Login Keypad */
 .keypad-btn {
@@ -110,44 +96,18 @@ body {
 .keypad-btn:active { background: rgba(255, 255, 255, 0.15); }
 
 /* Ultra Premium Glass */
-.glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
+
 .glass-card:active {
   transform: scale(0.98);
-}
-.bottom-nav-glass {
-  background: rgba(10, 10, 12, 0.7);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+
 /* Ultra Premium Glass */
-.glass-card {
-  background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-  border-radius: 20px;
-  transition: all 0.2s ease;
-}
+
 .glass-card:active {
   transform: scale(0.98);
 }
-.bottom-nav-glass {
-  background: rgba(10, 10, 12, 0.7);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-}
+
 
 
 
@@ -184,4 +144,23 @@ body {
   animation: rainbowBorderRun 3s linear infinite;
   border-radius: 1rem;
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.1); 
+}
+
+/* Premium High-Quality Glass Card */
+.glass-card {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 1rem;
+}
+
+/* Floating Bottom Menu Glass */
+.bottom-nav-glass {
+  background: rgba(15, 15, 20, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(28, 212, 90, 0.1);
 }
