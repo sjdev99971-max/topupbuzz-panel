@@ -115,3 +115,17 @@ export const clearStealth = () => {
 
 export const joinMissingGroups = (acc_id: string, groups: any[]) => api.post("/groups/join-missing", { acc_id, groups }).then(r => r.data);
 export const exportFolder = (folder_id: number) => `${API_URL}/folders/${folder_id}/export`;
+
+export const checkSpamBot = (id: string) => api.post(`/accounts/${id}/check-spambot`).then(r => r.data);
+
+// For file download with headers
+export const downloadFolderFile = async (folder_id: number) => {
+  const res = await api.get(`/folders/${folder_id}/export`, { responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `folder_${folder_id}.json`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
