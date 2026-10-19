@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign,
-  getLocal, saveLocal, clearLocal, getTelegramWebApp, telegramMiniAuth 
+  getLocal, saveLocal, clearLocal, getTelegramWebApp, telegramMiniAuth, refreshDialogs 
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
@@ -99,7 +99,7 @@ export default function Dashboard() {
       {tab === "home" && <HomeTab stats={stats} campaignStats={campaignStats} folders={folders} accounts={accounts} setTab={setTab} />}
       {tab === "library" && <LibraryTab setTab={setTab} />}
       {tab === "broadcast" && <BroadcastTab accounts={accounts} />}
-      {tab === "chats" && <div className="text-center mt-20 text-[var(--dim)]">Chats Module Coming Soon</div>}
+      {tab === "chats" && <ChatsTab accounts={accounts} />}
       {tab === "me" && <MeTab me={me} />}
 
       {/* BOTTOM NAV */}
@@ -282,6 +282,97 @@ function MeTab({ me }: any) {
       <button className="w-full mt-4 bg-red-500/10 text-red-500 border border-red-500/30 rounded-xl py-3 font-semibold hover:bg-red-500/20 transition" onClick={() => { clearLocal("session"); window.location.href = "/"; }}>
         Log out
       </button>
+    </div>
+  );
+}
+
+
+function ChatsTab({ accounts }: any) {
+  const [selectedAcc, setSelectedAcc] = useState("");
+  const [dialogs, setDialogs] = useState<{groups: any[], channels: any[]}>({groups: [], channels: []});
+  const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
+
+  const loadChats = async () => {
+    if (!selectedAcc) return;
+    setLoading(true);
+    setError("");
+    setDialogs({groups: [], channels: []});
+    try {
+      const res = await refreshDialogs(selectedAcc);
+      setDialogs({ groups: res.groups || [], channels: res.channels || [] });
+    } catch (e: any) {
+      setError(e?.response?.data?.detail || "Failed to load chats. Account might be disconnected.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const allChats = [...dialogs.groups, ...dialogs.channels];
+  const filteredChats = allChats.filter(c => c.title.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="space-y-4">
+      <h2 className="text-2xl font-bold text-white mb-2">Chats</h2>
+      <p className="text-sm text-[var(--dim)] mb-4">View and manage chats from your accounts.</p>
+
+      <div className="bg-[#0f0f11] border border-[#1f1f22] rounded-2xl p-4 space-y-4">
+        <div>
+          <label className="block text-xs text-[var(--dim)] mb-2">Select Account</label>
+          <div className="flex gap-2">
+            <select 
+              value={selectedAcc} 
+              onChange={e => setSelectedAcc(e.target.value)}
+              className="flex-1 bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]"
+            >
+              <option value="">-- Choose Account --</option>
+              {accounts.map((a: any) => (
+                <option key={a.id} value={a.id}>{a.phone} ({a.health})</option>
+              ))}
+            </select>
+            <button 
+              onClick={loadChats} 
+              disabled={!selectedAcc || loading}
+              className="bg-[var(--accent)] text-black px-6 py-3 rounded-xl font-bold text-sm disabled:opacity-50"
+            >
+              {loading ? "..." : "Load"}
+            </button>
+          </div>
+        </div>
+
+        {error && <div className="text-red-500 text-xs">{error}</div>}
+
+        {allChats.length > 0 && (
+          <div className="pt-4 border-t border-[#1f1f22]">
+            <input 
+              type="text" 
+              placeholder="Search groups or channels..." 
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-2 text-xs text-white mb-3 outline-none focus:border-[var(--accent)]"
+            />
+            
+            <div className="max-h-[50vh] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+              {filteredChats.length === 0 ? (
+                <div className="text-center text-xs text-[var(--dim)] py-4">No chats found.</div>
+              ) : (
+                filteredChats.map((c: any, i: number) => (
+                  <div key={i} className="flex items-center gap-3 bg-[#050505] p-3 rounded-xl border border-[#1f1f22]">
+                    <div className="w-8 h-8 rounded-full bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)] text-xs">
+                      {c.id < 0 ? "📢" : "👥"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm text-white truncate">{c.title}</div>
+                      <div className="text-[10px] text-[var(--dim)]">ID: {c.id}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
