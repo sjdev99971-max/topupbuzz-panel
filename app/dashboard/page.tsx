@@ -134,6 +134,7 @@ export default function Dashboard() {
 }
 
 function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onRefresh }: any) {
+  const router = useRouter();
   const t = stats?.totals || {};
   const deleteAcc = async (id: string) => {
     if(!confirm("Are you sure you want to delete this account?")) return;
@@ -229,7 +230,7 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
       <div>
         <div className="flex justify-between items-center mb-3 ml-1">
           <h3 className="text-[11px] font-bold text-[var(--dim)] tracking-widest uppercase">Connected Accounts</h3>
-          <button onClick={() => setShowAddAcc(true)} className="bg-[var(--accent)] text-black px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(28,212,90,0.3)]">
+          <button onClick={() => router.push("/login")} className="bg-[var(--accent)] text-black px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(28,212,90,0.3)]">
             <Plus size={14} /> Add Account
           </button>
         </div>
@@ -268,9 +269,7 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
         </div>
       </div>
 
-      {/* ADD ACCOUNT MODAL */}
-      {showAddAcc && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowAddAcc(false)}>
+      >
           <div className="bg-[#111] border border-[#1cd45a]/50 rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-[var(--accent)]">Add Telegram Account</h3>
@@ -1091,6 +1090,12 @@ function MeTab({ me }: any) {
         <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer"><Headphones size={18} className="text-white/60" /><span className="flex-1 text-sm text-white/90 font-medium">Support</span><ChevronRight size={16} className="text-white/30" /></div>
       </div>
 
+      <button 
+        onClick={() => router.push("/login")} 
+        className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4 shadow-[0_0_15px_rgba(28,212,90,0.3)]"
+      >
+        <User size={20} /> Add New Account
+      </button>
       <button onClick={() => { clearLocal("session"); router.push("/login"); }} className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4">
         <LogOut size={20} /> Log out Dashboard
       </button>
