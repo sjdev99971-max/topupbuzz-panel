@@ -150,26 +150,35 @@ body {
 }
 
 
-/* RGB Neon Text Animation */
-@keyframes rgbNeon {
-  0% { color: #ff0000; text-shadow: 0 0 5px #ff0000; }
-  25% { color: #00ff00; text-shadow: 0 0 5px #00ff00; }
-  50% { color: #0000ff; text-shadow: 0 0 5px #0000ff; }
-  75% { color: #ff00ff; text-shadow: 0 0 5px #ff00ff; }
-  100% { color: #ff0000; text-shadow: 0 0 5px #ff0000; }
+
+
+/* Running Rainbow Text Animation (No Fading, Just Running Colors) */
+@keyframes rainbowTextRun {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 .rgb-neon-text {
-  animation: rgbNeon 3s infinite linear;
+  background: linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent !important;
+  animation: rainbowTextRun 3s linear infinite;
+  font-weight: bold;
+  text-shadow: none !important;
 }
 
-/* RGB Neon Border Animation */
-@keyframes rgbNeonBorder {
-  0% { border-color: #ff0000; box-shadow: 0 0 8px #ff0000; }
-  25% { border-color: #00ff00; box-shadow: 0 0 8px #00ff00; }
-  50% { border-color: #0000ff; box-shadow: 0 0 8px #0000ff; }
-  75% { border-color: #ff00ff; box-shadow: 0 0 8px #ff00ff; }
-  100% { border-color: #ff0000; box-shadow: 0 0 8px #ff0000; }
+/* Running Rainbow Border Animation */
+@keyframes rainbowBorderRun {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
 }
 .rgb-neon-border {
-  animation: rgbNeonBorder 3s infinite linear;
+  border: 2px solid transparent;
+  background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)) padding-box,
+              linear-gradient(90deg, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000) border-box;
+  background-size: 100% 100%, 200% 100%;
+  animation: rainbowBorderRun 3s linear infinite;
+  border-radius: 1rem;
+  box-shadow: none !important;
 }

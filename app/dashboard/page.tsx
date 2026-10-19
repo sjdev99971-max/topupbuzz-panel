@@ -765,7 +765,7 @@ function MeTab({ me }: any) {
   const HelpIcon = ({ title, desc, example }: any) => (
     <button onClick={() => setHelpData({ title, desc, example })} className="flex items-center gap-1 ml-2 group">
       <HelpCircle size={16} className="text-[var(--accent)] group-hover:animate-spin" />
-      <span className="rgb-neon-text text-[10px] font-bold">(ক্লিক করে জানুন)</span>
+      <span className="rgb-neon-text text-[10px]">(বিস্তারিত জানতে ক্লিক করুন)</span>
     </button>
   );
 
