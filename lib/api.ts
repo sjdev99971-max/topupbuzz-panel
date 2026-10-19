@@ -112,3 +112,6 @@ export const getStealth = (): number | null => {
 export const clearStealth = () => {
   if (typeof window !== "undefined") localStorage.removeItem("stealth_id");
 };
+
+export const joinMissingGroups = (acc_id: string, groups: any[]) => api.post("/groups/join-missing", { acc_id, groups }).then(r => r.data);
+export const exportFolder = (folder_id: number) => `${API_URL}/folders/${folder_id}/export`;
