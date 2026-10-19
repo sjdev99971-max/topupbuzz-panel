@@ -38,7 +38,7 @@ export default function LoginPage() {
           let rawNum = response.phone_number;
           if (rawNum.startsWith("+")) rawNum = rawNum.substring(1);
           setPhone(rawNum);
-          setCountryCode("+"); // Since telegram gives full number
+          setCountryCode("+"); 
           sendOtpToBackend("+" + rawNum);
         } else {
           setError("Contact sharing was cancelled.");
