@@ -172,7 +172,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen flex flex-col admin-mode">
-      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-lg">
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-black/60 backdrop-blur-xl shadow-lg shadow-black/50">
         <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-3 max-w-7xl mx-auto w-full">
           <Link href="/dashboard" className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-[var(--accent2)] flex items-center justify-center text-white text-xs font-bold">♛</div>
@@ -226,20 +226,20 @@ export default function AdminPage() {
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="stat">
+                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
                   <div className="stat-label">Total Users</div>
                   <div className="stat-value">{c.users || 0}</div>
                 </div>
-                <div className="stat">
+                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
                   <div className="stat-label">Total Accounts</div>
                   <div className="stat-value">{c.accounts || 0}</div>
                 </div>
-                <div className="stat">
+                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
                   <div className="stat-label">Campaigns</div>
                   <div className="stat-value">{c.campaigns || 0}</div>
                   <div className="stat-sub text-[var(--success)]">{c.running || 0} running</div>
                 </div>
-                <div className="stat">
+                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
                   <div className="stat-label">Success Rate</div>
                   <div className="stat-value" style={{ color: rate >= 90 ? "var(--success)" : rate >= 70 ? "var(--warning)" : "var(--danger)" }}>
                     {rate.toFixed(1)}%
@@ -314,7 +314,7 @@ export default function AdminPage() {
               </div>
 
               {/* QUICK DELIVER BOX */}
-              <div className="card p-4 bg-[var(--accent2)]/5 border-[var(--accent2)]/30 shadow-[0_0_15px_rgba(0,150,255,0.1)]">
+              <div className="glass-card p-4 border border-[var(--accent2)]/40 shadow-[0_0_20px_rgba(28,212,90,0.15)] relative overflow-hidden">
                 <div className="text-sm font-semibold mb-3 flex items-center gap-2">
                   ⚡ Quick Deliver (Fast Upgrade)
                 </div>
@@ -355,7 +355,7 @@ export default function AdminPage() {
                   <button 
                     onClick={handleQuickDeliver} 
                     disabled={busy}
-                    className="btn btn-primary py-2 px-6 h-[38px]"
+                    className="btn py-2 px-6 h-[38px] bg-gradient-to-r from-[var(--accent2)] to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-transform"
                   >
                     {busy ? "Delivering..." : "Deliver Now"}
                   </button>
@@ -366,7 +366,7 @@ export default function AdminPage() {
                 <div className="card divide-y divide-[var(--border)]">
                   {filteredUsers.map((u: any) => (
                     <div key={u.id} className="p-3 flex items-center gap-3 flex-wrap">
-                      <div className="w-9 h-9 rounded-full bg-[var(--surface3)] flex items-center justify-center text-xs font-bold text-[var(--dim)] shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--accent2)] to-emerald-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shrink-0">
                         {(u.first_name?.[0] || u.username?.[0] || "?").toUpperCase()}
                       </div>
                       <div className="flex-1 min-w-0">
