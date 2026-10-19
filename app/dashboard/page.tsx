@@ -136,69 +136,13 @@ export default function Dashboard() {
 function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onRefresh }: any) {
   const router = useRouter();
   const t = stats?.totals || {};
+  
   const deleteAcc = async (id: string) => {
     if(!confirm("Are you sure you want to delete this account?")) return;
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api/backend"}/accounts/${id}`, { method: 'DELETE' });
       if(onRefresh) onRefresh();
     } catch (e) { alert("Failed to delete account"); }
-  };
-
-  // Add Account States
-  const [showAddAcc, setShowAddAcc] = useState(false);
-  const [addPhone, setAddPhone] = useState("");
-  const [addOtp, setAddOtp] = useState("");
-  const [addStep, setAddStep] = useState<"phone" | "otp">("phone");
-  const [addSessionId, setAddSessionId] = useState("");
-  const [addLoading, setAddLoading] = useState(false);
-  const [addError, setAddError] = useState("");
-
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
-  const me = getLocal("session");
-
-  const handleSendOtp = async () => {
-    if (addPhone.length < 6) return setAddError("Enter a valid number");
-    setAddLoading(true); setAddError("");
-    try {
-      const fullPhone = addPhone.startsWith("+") ? addPhone : "+" + addPhone;
-      const res = await fetch(`${API_URL}/auth/send-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Telegram-Id": me?.id?.toString() || "" },
-        body: JSON.stringify({ phone: fullPhone, telegram_id: me?.id })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Failed to send OTP");
-      setAddSessionId(data.session_id);
-      setAddStep("otp");
-    } catch (err: any) { setAddError(err.message); }
-    setAddLoading(false);
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!addOtp || addOtp.length < 3) return setAddError("Enter valid OTP");
-    setAddLoading(true); setAddError("");
-    try {
-      const res = await fetch(`${API_URL}/auth/verify-otp`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Telegram-Id": me?.id?.toString() || "" },
-        body: JSON.stringify({ session_id: addSessionId, code: addOtp })
-      });
-      const data = await res.json();
-      
-      if (data.needs_password) {
-         alert("2FA is enabled on this account. Please log in from the Login page to add this account.");
-         setAddLoading(false);
-         return;
-      }
-      
-      if (!res.ok) throw new Error(data.detail || "Invalid OTP");
-      
-      alert("Account connected successfully!");
-      setShowAddAcc(false);
-      setAddPhone(""); setAddOtp(""); setAddStep("phone");
-      if(onRefresh) onRefresh(); // Refresh Home data
-    } catch (err: any) { setAddError(err.message); }
-    setAddLoading(false);
   };
 
   return (
@@ -226,7 +170,6 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
         </div>
       </div>
 
-      {/* Manage Accounts Section */}
       <div>
         <div className="flex justify-between items-center mb-3 ml-1">
           <h3 className="text-[11px] font-bold text-[var(--dim)] tracking-widest uppercase">Connected Accounts</h3>
@@ -268,40 +211,6 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
           </div>
         </div>
       </div>
-
-      >
-          <div className="bg-[#111] border border-[#1cd45a]/50 rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-[var(--accent)]">Add Telegram Account</h3>
-              <button onClick={() => setShowAddAcc(false)} className="text-white/50 hover:text-white bg-white/5 p-1 rounded-full"><X size={20}/></button>
-            </div>
-            
-            {addError && <div className="bg-red-500/10 text-red-500 text-xs p-2 rounded-lg mb-3 text-center">{addError}</div>}
-
-            {addStep === "phone" ? (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs text-white/50 mb-1 block">Phone Number (with country code)</label>
-                  <input type="tel" placeholder="+8801712345678" value={addPhone} onChange={e => setAddPhone(e.target.value)} className="w-full bg-[#050505] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[var(--accent)]" />
-                </div>
-                <button onClick={handleSendOtp} disabled={addLoading} className="w-full bg-[var(--accent)] text-black font-bold py-3 rounded-xl flex justify-center">
-                  {addLoading ? <Loader2 size={20} className="animate-spin" /> : "Send OTP"}
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div>
-                  <label className="text-xs text-white/50 mb-1 block">Enter OTP Code</label>
-                  <input type="text" placeholder="12345" value={addOtp} onChange={e => setAddOtp(e.target.value)} className="w-full bg-[#050505] border border-white/10 rounded-xl px-4 py-3 text-white text-center text-xl tracking-[0.5em] outline-none focus:border-[var(--accent)]" maxLength={6} />
-                </div>
-                <button onClick={handleVerifyOtp} disabled={addLoading} className="w-full bg-[var(--accent)] text-black font-bold py-3 rounded-xl flex justify-center">
-                  {addLoading ? <Loader2 size={20} className="animate-spin" /> : "Verify & Add"}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
