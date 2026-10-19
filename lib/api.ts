@@ -119,18 +119,25 @@ export const exportFolder = (folder_id: number) => `${API_URL}/folders/${folder_
 export const checkSpamBot = (id: string) => api.post(`/accounts/${id}/check-spambot`).then(r => r.data);
 
 // For file download with headers
-export const downloadFolderFile = async (folder_id: number) => {
-  const res = await api.get(`/folders/${folder_id}/export`, { responseType: 'blob' });
-  const url = window.URL.createObjectURL(new Blob([res.data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `folder_${folder_id}.json`);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+export const downloadFolderFile = async (id: number) => {
+  try {
+    const res = await api.get(`/folders/${id}/export`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `folder_${id}.json`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  } catch (e) {
+    console.error("Download failed", e);
+    alert("Download failed!");
+  }
 };
 
 
 export const adminDemoteUser = async (uid: number) => {
   return await apiCall('/admin/demote-user', 'POST', { user_id: uid });
 };
+
+export const updateFolder = async (id: number, name: string, groups: any[]) => await api.put(`/folders/${id}`, { name, groups }).then(r => r.data);

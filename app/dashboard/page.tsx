@@ -143,8 +143,9 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
   const deleteAcc = async (id: string) => {
     if(!confirm("Are you sure you want to delete this account?")) return;
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api/backend"}/accounts/${id}`, { method: 'DELETE' });
+      await deleteAccount(id);
       if(onRefresh) onRefresh();
+      alert("Account deleted successfully!");
     } catch (e) { alert("Failed to delete account"); }
   };
 
@@ -221,6 +222,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
   const [folders, setFolders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
   
   const [selectedAcc, setSelectedAcc] = useState("");
   const [dialogs, setDialogs] = useState<any[]>([]);
@@ -246,15 +248,29 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
     setSaving(true);
     try {
       const groupsData = dialogs.filter(d => selectedGroups.includes(d.id));
-      await createFolder(folderName, groupsData);
-      await joinMissingGroups(selectedAcc, groupsData);
-      alert("Folder created & background joining started!");
+      if (editingFolderId) {
+        await updateFolder(editingFolderId, folderName, groupsData);
+        alert("Folder updated successfully!");
+      } else {
+        await createFolder(folderName, groupsData);
+        await joinMissingGroups(selectedAcc, groupsData);
+        alert("Folder created & background joining started!");
+      }
       setIsCreating(false);
-      setFolderName(""); setSelectedGroups([]); setSelectedAcc(""); setDialogs([]);
+      setFolderName(""); setSelectedGroups([]); setSelectedAcc(""); setDialogs([]); setEditingFolderId(null);
       getFolders().then(setFolders);
       if(onRefresh) onRefresh();
     } catch (e: any) { alert("Failed to save folder."); }
     setSaving(false);
+  };
+
+
+  const handleEditFolder = (f: any) => {
+    setEditingFolderId(f.id);
+    setFolderName(f.name);
+    const groups = typeof f.groups_json === 'string' ? JSON.parse(f.groups_json) : f.groups_json;
+    setSelectedGroups(groups.map((g: any) => g.id));
+    setIsCreating(true);
   };
 
   const handleImport = async (e: any) => {
@@ -342,6 +358,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
           <div key={i} className="glass-card p-4 flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><Folder size={18} /></div>
              <div className="flex-1"><div className="text-white font-bold text-sm">{f.name}</div><div className="text-xs text-[var(--dim)]">{JSON.parse(f.groups_json).length} groups</div></div>
+             <button onClick={() => handleEditFolder(f)} className="text-blue-400 hover:text-blue-300 p-2"><Settings size={18} /></button>
              <button onClick={() => downloadFolderFile(f.id)} className="text-[var(--dim)] hover:text-[var(--accent)] p-2"><Download size={18} /></button>
           </div>
         ))
