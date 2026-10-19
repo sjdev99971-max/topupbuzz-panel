@@ -836,7 +836,7 @@ function MeTab({ me }: any) {
               </label>
               <input type="number" min="0" value={delayMinutes} onChange={e => setDelayMinutes(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
               {/* Animated Warning for Delay */}
-              <div className="mt-2 text-[11px] font-bold rgb-neon-text bg-black/50 p-2 rounded-lg border rgb-neon-border flex items-center gap-1">
+              <div className="mt-2 text-[11px] font-bold text-white bg-red-500/20 p-2 rounded-lg border border-red-500/50 flex items-center gap-1">
                  <ShieldAlert size={12} /> সতর্কতা: ৫ মিনিটের নিচে ডিলে দিলে অ্যাকাউন্ট ব্লক হতে পারে।
               </div>
            </div>
