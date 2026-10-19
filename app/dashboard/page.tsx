@@ -38,6 +38,10 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
+      const stealthId = typeof window !== "undefined" ? localStorage.getItem("stealth_id") : null;
+      if (stealthId) {
+        // Stealth mode এ থাকলে API কলের সময় X-Stealth-Id হেডার পাঠানো হবে (api.ts এ ইন্টারসেপ্টর দিয়ে)
+      }
       let session = getLocal("session");
       if (!session) {
         const tg = getTelegramWebApp();
