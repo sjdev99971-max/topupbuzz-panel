@@ -64,7 +64,7 @@ export default function LoginPage() {
       const res = await fetch(`${API_URL}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: fullPhone })
+        body: JSON.stringify({ phone: fullPhone, telegram_id: tgApp?.initDataUnsafe?.user?.id || null })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || "Failed to send OTP");
@@ -102,7 +102,8 @@ export default function LoginPage() {
       
       if (!res.ok) throw new Error(data.detail || "Invalid OTP");
       
-      saveLocal("session", data);
+      const sessionData = { ...data, id: data.user_id };
+      saveLocal("session", sessionData);
       router.push("/dashboard");
     } catch (err: any) {
       setError(err.message || "Verification failed!");
