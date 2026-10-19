@@ -11,7 +11,7 @@ import {
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
   getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, 
-  createFolder, joinMissingGroups, exportFolder, downloadFolderFile, checkSpamBot, getSavedPosts, saveCampaign 
+  createFolder, joinMissingGroups, exportFolder, downloadFolderFile, checkSpamBot, saveCampaign 
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
