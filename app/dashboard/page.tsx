@@ -11,7 +11,7 @@ import {
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
   getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, getPlans, 
-  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot 
+  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs 
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
@@ -341,13 +341,15 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
 }
 
 function BroadcastTab({ accounts, folders }: any) {
-  const [mode, setMode] = useState<"list" | "write" | "link" | "saved" | "send_now">("list");
+  const [mode, setMode] = useState<"list" | "write" | "link" | "saved" | "send_now" | "history">("list");
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
   
   const [savedPosts, setSavedPosts] = useState<any[]>([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
+  const [historyLogs, setHistoryLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
   const [selectedAcc, setSelectedAcc] = useState("");
   const [selectedFolder, setSelectedFolder] = useState("");
@@ -361,6 +363,17 @@ function BroadcastTab({ accounts, folders }: any) {
     setLoadingPosts(true);
     try { const posts = await getSavedPosts(); setSavedPosts(posts); } catch {}
     setLoadingPosts(false);
+  };
+
+
+  const loadHistory = async (accId: string) => {
+    if (!accId) return;
+    setLoadingLogs(true);
+    try {
+      const res = await getLogs(accId);
+      setHistoryLogs(res || []);
+    } catch (e) { alert("Failed to load history"); }
+    setLoadingLogs(false);
   };
 
   const enterSendMode = async () => {
@@ -429,7 +442,12 @@ function BroadcastTab({ accounts, folders }: any) {
 
           <div className="glass-card p-4 flex items-center gap-4 cursor-pointer" onClick={() => { setMode("saved"); loadMyPosts(); }}>
             <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white"><FileText size={22} /></div>
-            <div className="flex-1"><div className="text-white text-sm font-bold">My Posts (History)</div><div className="text-xs text-[var(--dim)]">View all saved templates</div></div>
+            <div className="flex-1"><div className="text-white text-sm font-bold">Saved Post History</div><div className="text-xs text-[var(--dim)]">View all saved templates</div></div>
+            <ChevronRight size={20} className="text-[var(--dim)]" />
+          </div>
+          <div className="glass-card p-4 flex items-center gap-4 cursor-pointer mt-3" onClick={() => { setMode("history"); }}>
+            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-white"><Clock size={22} /></div>
+            <div className="flex-1"><div className="text-white text-sm font-bold">Broadcast History</div><div className="text-xs text-[var(--dim)]">See where and when posts were sent</div></div>
             <ChevronRight size={20} className="text-[var(--dim)]" />
           </div>
         </div>
@@ -505,6 +523,41 @@ function BroadcastTab({ accounts, folders }: any) {
     );
   }
 
+
+  if (mode === "history") {
+    return (
+      <div className="space-y-4 pb-10">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={reset} className="text-[var(--dim)] bg-white/5 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Broadcast History</h2>
+        </div>
+        <div className="glass-card p-4 mb-4">
+          <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">Select Account to view logs</label>
+          <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => { setSelectedAcc(e.target.value); loadHistory(e.target.value); }}>
+            <option value="">-- Choose Account --</option>
+            {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+          </select>
+        </div>
+        {loadingLogs ? (
+           <div className="text-center text-[var(--accent)] mt-10"><Loader2 className="animate-spin mx-auto" size={32} /></div>
+        ) : historyLogs.length === 0 ? (
+           <div className="text-center text-[var(--dim)] py-10 glass-card">No history found for this account.</div>
+        ) : (
+           <div className="space-y-2">
+             {historyLogs.map((log: any) => (
+               <div key={log.id} className="glass-card p-3 flex flex-col gap-1">
+                 <div className="flex justify-between items-start">
+                   <div className="text-sm font-bold text-white truncate max-w-[70%]">{log.group_title}</div>
+                   <div className={`text-[10px] font-bold px-2 py-0.5 rounded ${log.status.includes('success') ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>{log.status}</div>
+                 </div>
+                 <div className="text-[10px] text-[var(--dim)]">{new Date(log.ts).toLocaleString()}</div>
+               </div>
+             ))}
+           </div>
+        )}
+      </div>
+    );
+  }
   if (mode === "send_now") {
     return (
       <div className="space-y-4 pb-10">
@@ -710,8 +763,9 @@ function MeTab({ me }: any) {
 
   // Helper component for Help Icon
   const HelpIcon = ({ title, desc, example }: any) => (
-    <button onClick={() => setHelpData({ title, desc, example })} className="text-white/40 hover:text-white transition-colors ml-1">
-      <HelpCircle size={16} />
+    <button onClick={() => setHelpData({ title, desc, example })} className="flex items-center gap-1 ml-2 group">
+      <HelpCircle size={16} className="text-[var(--accent)] group-hover:animate-spin" />
+      <span className="rgb-neon-text text-[10px] font-bold">(ক্লিক করে জানুন)</span>
     </button>
   );
 
@@ -724,8 +778,8 @@ function MeTab({ me }: any) {
         </div>
 
         {/* Animated Warning Notice */}
-        <div className="bg-red-500/10 border-2 border-red-500/50 rounded-2xl p-4 text-sm text-white/80 space-y-2 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.2)]">
-           <div className="flex items-center gap-2 text-red-400 font-bold mb-1">
+        <div className="rgb-neon-border bg-black/50 border-2 rounded-2xl p-4 text-sm text-white/90 space-y-2">
+           <div className="flex items-center gap-2 rgb-neon-text font-bold mb-1">
               <ShieldAlert size={18} /> টেলিগ্রাম সেফটি গাইডলাইন (গুরুত্বপূর্ণ)
            </div>
            <p>টেলিগ্রামের স্প্যাম ফিল্টার অত্যন্ত কড়া। একসাথে অনেকগুলো পোস্ট পাঠালে বা খুব কম সময়ের মধ্যে পর পর পোস্ট পাঠালে আপনার অ্যাকাউন্ট <strong>Restricted বা Ban</strong> খেতে পারে।</p>
@@ -782,7 +836,7 @@ function MeTab({ me }: any) {
               </label>
               <input type="number" min="0" value={delayMinutes} onChange={e => setDelayMinutes(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
               {/* Animated Warning for Delay */}
-              <div className="mt-2 text-[11px] font-bold text-red-400 bg-red-500/10 p-2 rounded-lg border border-red-500/20 animate-pulse flex items-center gap-1">
+              <div className="mt-2 text-[11px] font-bold rgb-neon-text bg-black/50 p-2 rounded-lg border rgb-neon-border flex items-center gap-1">
                  <ShieldAlert size={12} /> সতর্কতা: ৫ মিনিটের নিচে ডিলে দিলে অ্যাকাউন্ট ব্লক হতে পারে।
               </div>
            </div>
