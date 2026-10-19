@@ -629,21 +629,24 @@ function ChatsTab({ accounts }: any) {
 function MeTab({ me }: any) {
   const router = useRouter();
   const [showPremium, setShowPremium] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  
+  // Settings States
+  const [activeStart, setActiveStart] = useState(me?.settings?.active_start || "08:00");
+  const [activeEnd, setActiveEnd] = useState(me?.settings?.active_end || "23:00");
+  const [forwardMode, setForwardMode] = useState(me?.settings?.forward_mode || "copy");
+  const [batchSize, setBatchSize] = useState(me?.settings?.batch_size || 1);
+  const [delayMinutes, setDelayMinutes] = useState(me?.settings?.delay_minutes || 10);
+  const [maxRetries, setMaxRetries] = useState(me?.settings?.max_retries || 3);
+  const [notifications, setNotifications] = useState(me?.settings?.notifications ?? true);
+  const [savingSettings, setSavingSettings] = useState(false);
+  
   const [plans, setPlans] = useState<any[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
 
-  // টেলিগ্রামের ইনভিজিবল ক্যারেক্টার ফিল্টার
   const cleanName = me?.first_name?.replace(/[^\w\s\u0980-\u09FF]/gi, '').trim() || me?.username || "User";
   const avatarUrl = me?.photo_url || `https://apis.topup.buzz/avatar/${me?.user_id || me?.id}`;
   const currentPlan = me?.plan || "unverified";
-
-  // প্ল্যান লোড করার ফাংশন
-  const handleBuyPlan = (plan: any) => {
-    const text = `Hello, I need the ${plan.name.toUpperCase()} plan.\nPrice: ৳${plan.price}\nDuration: ${plan.days} Days\nMy Username: @${me?.username || "user"}`;
-    navigator.clipboard.writeText(text);
-    alert("Plan details copied to clipboard! Please paste it in the chat.");
-    window.open("https://t.me/DEVELOPER_JAHID_BHAI", "_blank");
-  };
 
   const loadPlans = async () => {
     setLoadingPlans(true);
@@ -660,6 +663,132 @@ function MeTab({ me }: any) {
     if (showPremium) loadPlans();
   }, [showPremium]);
 
+  const handleSaveSettings = async () => {
+    if (delayMinutes < 5 && delayMinutes > 0) {
+      if(!confirm("WARNING: Delay less than 5 minutes can get your account restricted by Telegram. Do you want to proceed?")) return;
+    }
+    if (delayMinutes === 0) {
+      if(!confirm("DANGER: Setting delay to 0 means all posts will be sent at once. This is highly unsafe and your account WILL be banned. Proceed?")) return;
+    }
+
+    setSavingSettings(true);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api/backend"}/user/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Telegram-Id": me?.id?.toString() || "" },
+        body: JSON.stringify({ 
+          active_start: activeStart,
+          active_end: activeEnd,
+          forward_mode: forwardMode,
+          batch_size: batchSize,
+          delay_minutes: delayMinutes,
+          max_retries: maxRetries,
+          notifications: notifications
+        })
+      });
+      if(res.ok) {
+        alert("Settings saved successfully!");
+        setShowSettings(false);
+      } else {
+        alert("Failed to save settings on server.");
+      }
+    } catch (e) {
+      alert("Error saving settings!");
+    }
+    setSavingSettings(false);
+  };
+
+  const handleBuyPlan = (plan: any) => {
+    const text = `Hello, I need the ${plan.name.toUpperCase()} plan.\nPrice: ৳${plan.price}\nDuration: ${plan.days} Days\nMy Username: @${me?.username || "user"}`;
+    navigator.clipboard.writeText(text);
+    alert("Plan details copied to clipboard! Please paste it in the chat.");
+    window.open("https://t.me/DEVELOPER_JAHID_BHAI", "_blank");
+  };
+
+  if (showSettings) {
+    return (
+      <div className="space-y-4 pb-20">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={() => setShowSettings(false)} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Settings</h2>
+        </div>
+
+        <div className="bg-[#1cd45a]/10 border border-[#1cd45a]/30 rounded-2xl p-4 text-sm text-white/80 space-y-2">
+           <div className="flex items-center gap-2 text-[#1cd45a] font-bold mb-1">
+              <ShieldAlert size={18} /> টেলিগ্রাম সেফটি গাইডলাইন
+           </div>
+           <p>টেলিগ্রামের স্প্যাম ফিল্টার অত্যন্ত কড়া। একসাথে অনেকগুলো পোস্ট পাঠালে বা খুব কম সময়ের মধ্যে পর পর পোস্ট পাঠালে আপনার অ্যাকাউন্ট <strong>Restricted বা Ban</strong> খেতে পারে।</p>
+           <p className="text-xs text-yellow-400 mt-2">💡 <strong>সেরা সেটিংস:</strong> ডিলে সর্বনিম্ন ৫ মিনিট, সেফ ১০ মিনিট। একসাথে সর্বোচ্চ ৩টি পোস্ট পাঠানো নিরাপদ।</p>
+        </div>
+
+        <div className="glass-card p-5 space-y-6">
+           {/* Active Hours (Night Mode) */}
+           <div>
+              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><CalendarClock size={16}/> Active Hours (Night Mode)</label>
+              <div className="flex items-center gap-2">
+                 <input type="time" value={activeStart} onChange={e => setActiveStart(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+                 <span className="text-white/50">to</span>
+                 <input type="time" value={activeEnd} onChange={e => setActiveEnd(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+              </div>
+              <p className="text-[11px] text-white/50 mt-1">এই সময়ের বাইরে বট কোনো পোস্ট পাঠাবে না।</p>
+           </div>
+
+           {/* Forward Mode */}
+           <div className="border-t border-white/5 pt-4">
+              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Send size={16}/> Forward Mode</label>
+              <div className="grid grid-cols-2 gap-2">
+                 <button onClick={() => setForwardMode("copy")} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${forwardMode === "copy" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Copy (No Tag)</button>
+                 <button onClick={() => setForwardMode("forward")} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${forwardMode === "forward" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Forward (With Tag)</button>
+              </div>
+           </div>
+
+           {/* Batch Size */}
+           <div className="border-t border-white/5 pt-4">
+              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Zap size={16}/> Batch Size (একসাথে কতটি পোস্ট)</label>
+              <select value={batchSize} onChange={e => setBatchSize(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]">
+                <option value={1}>1 Post (Most Safe)</option>
+                <option value={2}>2 Posts (Balanced)</option>
+                <option value={3}>3 Posts (Recommended Max)</option>
+                <option value={5}>5 Posts (Risky)</option>
+              </select>
+           </div>
+
+           {/* Delay Minutes */}
+           <div className="border-t border-white/5 pt-4">
+              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Clock size={16}/> Delay Between Batches (মিনিট)</label>
+              <input type="number" min="0" value={delayMinutes} onChange={e => setDelayMinutes(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+              <p className="text-[11px] text-red-400 mt-2 font-bold">সতর্কতা: ৫ মিনিটের নিচে ডিলে দিলে অ্যাকাউন্ট ব্লক হওয়ার সম্ভাবনা থাকে।</p>
+           </div>
+
+           {/* Auto Retry */}
+           <div className="border-t border-white/5 pt-4">
+              <label className="text-sm font-semibold text-white mb-2 flex items-center gap-2"><Zap size={16}/> Auto Retry (Max Attempts)</label>
+              <select value={maxRetries} onChange={e => setMaxRetries(Number(e.target.value))} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]">
+                <option value={1}>1 Attempt</option>
+                <option value={3}>3 Attempts (Recommended)</option>
+                <option value={5}>5 Attempts</option>
+              </select>
+           </div>
+
+           {/* Notifications */}
+           <div className="flex items-center justify-between border-t border-white/5 pt-4">
+              <div>
+                 <div className="text-sm font-semibold text-white flex items-center gap-2"><Settings size={16}/> Daily Notifications</div>
+                 <div className="text-[11px] text-white/50 mt-0.5">Get 2 tips/day about Telegram safety.</div>
+              </div>
+              <button onClick={() => setNotifications(!notifications)} className={`w-12 h-6 rounded-full transition-colors relative ${notifications ? 'bg-[var(--accent)]' : 'bg-white/20'}`}>
+                <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${notifications ? 'left-6' : 'left-0.5'}`}></div>
+              </button>
+           </div>
+        </div>
+
+        <button onClick={handleSaveSettings} disabled={savingSettings} className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold flex justify-center items-center mt-4 shadow-[0_0_15px_rgba(28,212,90,0.3)]">
+          {savingSettings ? <Loader2 size={20} className="animate-spin" /> : "Save Settings"}
+        </button>
+      </div>
+    );
+  }
+
   if (showPremium) {
     return (
       <div className="space-y-4 pb-20">
@@ -667,19 +796,11 @@ function MeTab({ me }: any) {
            <button onClick={() => setShowPremium(false)} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
            <h2 className="text-xl font-bold text-white">Premium Plans</h2>
         </div>
-        
         <div className="bg-[#111] border border-[var(--accent)]/30 rounded-2xl p-6 text-center space-y-2 shadow-[0_0_20px_rgba(28,212,90,0.1)]">
           <Crown size={48} className="text-[var(--accent)] mx-auto mb-2" />
           <h3 className="text-xl font-bold text-white">Your Current Plan</h3>
           <p className="text-[var(--accent)] font-bold text-lg uppercase">{currentPlan}</p>
-          {me?.limits && (
-            <div className="flex justify-center gap-4 text-xs text-white/60 mt-2">
-              <span>Accounts: {me.limits.max_accounts}</span>
-              <span>Msgs/Day: {me.limits.max_daily_messages}</span>
-            </div>
-          )}
         </div>
-
         {loadingPlans ? (
            <div className="text-center text-[var(--accent)] mt-10"><Loader2 className="animate-spin mx-auto" size={32} /></div>
         ) : (
@@ -695,13 +816,8 @@ function MeTab({ me }: any) {
                   <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-white/70">
                     <div className="bg-black/40 p-2 rounded-lg">Accounts: <span className="text-white font-bold">{p.max_accounts}</span></div>
                     <div className="bg-black/40 p-2 rounded-lg">Daily Msgs: <span className="text-white font-bold">{p.max_daily_messages}</span></div>
-                    <div className="bg-black/40 p-2 rounded-lg col-span-2">Daily Joins: <span className="text-white font-bold">{p.max_daily_joins}</span></div>
                   </div>
-                  <button 
-                    disabled={isCurrent}
-                    onClick={() => handleBuyPlan(p)}
-                    className={`w-full mt-3 py-3 rounded-xl font-bold text-sm ${isCurrent ? 'bg-white/10 text-white/50' : 'bg-[var(--accent)] text-black active:scale-95 transition-transform'}`}
-                  >
+                  <button disabled={isCurrent} onClick={() => handleBuyPlan(p)} className={`w-full mt-3 py-3 rounded-xl font-bold text-sm ${isCurrent ? 'bg-white/10 text-white/50' : 'bg-[var(--accent)] text-black active:scale-95 transition-transform'}`}>
                     {isCurrent ? "Current Plan" : "Buy Plan (Contact Admin)"}
                   </button>
                 </div>
@@ -720,23 +836,16 @@ function MeTab({ me }: any) {
            <button className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-black"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M21 12c0 1.2-.4 2.3-1 3.2a7 7 0 0 1-12 0c-.6-.9-1-2-1-3.2a7 7 0 0 1 14 0Z"/></svg></button>
            <button className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-black"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
         </div>
-        
         <div className="flex flex-col items-center justify-center text-center relative z-10">
           <div className="w-24 h-24 rounded-full border-4 border-[#0d1f13] overflow-hidden bg-[#0d1f13] mb-3 flex items-center justify-center relative">
             <img src={avatarUrl} alt="profile" className="w-full h-full object-cover relative z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            <div className="absolute inset-0 flex items-center justify-center z-0">
-               <User size={40} className="text-white/50" />
-            </div>
+            <div className="absolute inset-0 flex items-center justify-center z-0"><User size={40} className="text-white/50" /></div>
           </div>
           <h2 className="text-xl font-bold text-black flex items-center justify-center gap-1">
             {cleanName} <span className="font-mono text-black/70">&lt;/&gt;</span>
           </h2>
           <p className="text-sm text-black/60 font-medium mt-0.5">@{me?.username || "user"}</p>
-          
-          <div 
-            className="mt-4 bg-black/10 px-4 py-1.5 rounded-full flex items-center gap-2 cursor-pointer hover:bg-black/20 transition-colors" 
-            onClick={() => setShowPremium(true)}
-          >
+          <div className="mt-4 bg-black/10 px-4 py-1.5 rounded-full flex items-center gap-2 cursor-pointer hover:bg-black/20 transition-colors" onClick={() => setShowPremium(true)}>
             <Crown size={16} className="text-black" />
             <span className="text-sm font-semibold text-black capitalize">{currentPlan} Plan · Tap to Upgrade</span>
           </div>
@@ -744,85 +853,42 @@ function MeTab({ me }: any) {
       </div>
 
       <div className="flex justify-center -mt-2 mb-4">
-        <button className="bg-white/5 border border-white/10 px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2">
-           <BookOpen size={16} /> Show tutorial
-        </button>
+        <button className="bg-white/5 border border-white/10 px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2"><BookOpen size={16} /> Show tutorial</button>
       </div>
 
       <div className="space-y-3">
-        <div 
-          className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" 
-          onClick={() => setShowPremium(true)}
-        >
+        <div onClick={() => setShowPremium(true)} className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors">
           <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Sparkles size={20} /></div>
-          <div className="flex-1">
-            <div className="text-white font-semibold text-[15px]">Get Premium</div>
-            <div className="text-xs text-white/50">Unlock all features</div>
-          </div>
+          <div className="flex-1"><div className="text-white font-semibold text-[15px]">Get Premium</div><div className="text-xs text-white/50">Unlock all features</div></div>
           <div className="flex items-center gap-3">
              <div className="flex items-center gap-1 bg-[#1cd45a] text-black px-2 py-0.5 rounded-full text-xs font-bold uppercase"><Crown size={12}/> {currentPlan}</div>
              <ChevronRight size={18} className="text-white/30" />
           </div>
         </div>
-
         <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
           <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Gift size={20} /></div>
-          <div className="flex-1">
-            <div className="text-white font-semibold text-[15px]">Tasks</div>
-            <div className="text-xs text-white/50">Earn coins</div>
-          </div>
+          <div className="flex-1"><div className="text-white font-semibold text-[15px]">Tasks</div><div className="text-xs text-white/50">Earn coins</div></div>
           <ChevronRight size={18} className="text-white/30" />
         </div>
-
         <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
           <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Gift size={20} /></div>
-          <div className="flex-1">
-            <div className="text-white font-semibold text-[15px]">Refer & Earn</div>
-            <div className="text-xs text-white/50">Invite friends, earn coins when they j...</div>
-          </div>
+          <div className="flex-1"><div className="text-white font-semibold text-[15px]">Refer & Earn</div><div className="text-xs text-white/50">Invite friends, earn coins</div></div>
           <ChevronRight size={18} className="text-white/30" />
         </div>
-
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
+        <div onClick={() => setShowSettings(true)} className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors">
           <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Settings size={20} /></div>
-          <div className="flex-1">
-            <div className="text-white font-semibold text-[15px]">Settings</div>
-            <div className="text-xs text-white/50">Timezone · Forward</div>
-          </div>
+          <div className="flex-1"><div className="text-white font-semibold text-[15px]">Settings</div><div className="text-xs text-white/50">Active Hours · Forward · Safety</div></div>
           <ChevronRight size={18} className="text-white/30" />
         </div>
       </div>
-
-      {!me && (
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-5 mt-4">
-          <p className="text-sm text-white/70 leading-relaxed">
-            You're not logged in. Log in with your Telegram account to post, auto-post and manage your groups.
-          </p>
-        </div>
-      )}
 
       <div className="bg-[#111] border border-white/5 rounded-2xl p-2 mt-4 space-y-1">
-        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer">
-          <FileText size={18} className="text-white/60" />
-          <span className="flex-1 text-sm text-white/90 font-medium">Terms & Conditions</span>
-          <ChevronRight size={16} className="text-white/30" />
-        </div>
-        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer">
-          <ShieldAlert size={18} className="text-white/60" />
-          <span className="flex-1 text-sm text-white/90 font-medium">Privacy Policy</span>
-          <ChevronRight size={16} className="text-white/30" />
-        </div>
-        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer">
-          <Headphones size={18} className="text-white/60" />
-          <span className="flex-1 text-sm text-white/90 font-medium">Support</span>
-          <ChevronRight size={16} className="text-white/30" />
-        </div>
+        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer"><FileText size={18} className="text-white/60" /><span className="flex-1 text-sm text-white/90 font-medium">Terms & Conditions</span><ChevronRight size={16} className="text-white/30" /></div>
+        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer"><ShieldAlert size={18} className="text-white/60" /><span className="flex-1 text-sm text-white/90 font-medium">Privacy Policy</span><ChevronRight size={16} className="text-white/30" /></div>
+        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer"><Headphones size={18} className="text-white/60" /><span className="flex-1 text-sm text-white/90 font-medium">Support</span><ChevronRight size={16} className="text-white/30" /></div>
       </div>
 
-      <button 
-        onClick={() => { clearLocal("session"); router.push("/login"); }} 
-        className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4"
-      >
+      <button onClick={() => { clearLocal("session"); router.push("/login"); }} className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4">
         <LogIn size={20} /> Log out
       </button>
     </div>
