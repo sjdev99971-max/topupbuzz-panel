@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
-  getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, 
+  getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, getPlans, 
   createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot 
 } from "@/lib/api";
 
@@ -629,10 +629,29 @@ function ChatsTab({ accounts }: any) {
 function MeTab({ me }: any) {
   const router = useRouter();
   const [showPremium, setShowPremium] = useState(false);
+  const [plans, setPlans] = useState<any[]>([]);
+  const [loadingPlans, setLoadingPlans] = useState(false);
 
-  // টেলিগ্রামের আজেবাজে ইনভিজিবল ক্যারেক্টার ফিল্টার করার লজিক
+  // টেলিগ্রামের ইনভিজিবল ক্যারেক্টার ফিল্টার
   const cleanName = me?.first_name?.replace(/[^\w\s\u0980-\u09FF]/gi, '').trim() || me?.username || "User";
   const avatarUrl = me?.photo_url || `https://apis.topup.buzz/avatar/${me?.user_id || me?.id}`;
+  const currentPlan = me?.plan || "unverified";
+
+  // প্ল্যান লোড করার ফাংশন
+  const loadPlans = async () => {
+    setLoadingPlans(true);
+    try {
+      const res = await getPlans();
+      setPlans(res || []);
+    } catch (e) {
+      console.error("Failed to load plans", e);
+    }
+    setLoadingPlans(false);
+  };
+
+  useEffect(() => {
+    if (showPremium) loadPlans();
+  }, [showPremium]);
 
   if (showPremium) {
     return (
@@ -642,24 +661,46 @@ function MeTab({ me }: any) {
            <h2 className="text-xl font-bold text-white">Premium Plans</h2>
         </div>
         
-        <div className="bg-[#111] border border-[var(--accent)]/30 rounded-2xl p-6 text-center space-y-4 shadow-[0_0_20px_rgba(28,212,90,0.1)]">
-          <Crown size={48} className="text-[var(--accent)] mx-auto" />
-          <h3 className="text-xl font-bold text-white">Unlock All Features</h3>
-          <p className="text-sm text-white/60">Get unlimited broadcasts, auto-joins, and advanced analytics.</p>
-          
-          <div className="space-y-3 mt-6">
-             <div className="bg-black/50 border border-white/10 rounded-xl p-4 flex justify-between items-center">
-                <div className="text-left"><div className="text-white font-bold">Starter Pack</div><div className="text-xs text-white/50">30 Days</div></div>
-                <div className="text-[var(--accent)] font-bold">500 Coins</div>
-             </div>
-             <div className="bg-black/50 border border-white/10 rounded-xl p-4 flex justify-between items-center">
-                <div className="text-left"><div className="text-white font-bold">Pro Pack</div><div className="text-xs text-white/50">90 Days</div></div>
-                <div className="text-[var(--accent)] font-bold">1200 Coins</div>
-             </div>
-          </div>
-
-          <button className="w-full mt-6 bg-[var(--accent)] text-black py-3 rounded-xl font-bold">Buy Coins</button>
+        <div className="bg-[#111] border border-[var(--accent)]/30 rounded-2xl p-6 text-center space-y-2 shadow-[0_0_20px_rgba(28,212,90,0.1)]">
+          <Crown size={48} className="text-[var(--accent)] mx-auto mb-2" />
+          <h3 className="text-xl font-bold text-white">Your Current Plan</h3>
+          <p className="text-[var(--accent)] font-bold text-lg uppercase">{currentPlan}</p>
+          {me?.limits && (
+            <div className="flex justify-center gap-4 text-xs text-white/60 mt-2">
+              <span>Accounts: {me.limits.max_accounts}</span>
+              <span>Msgs/Day: {me.limits.max_daily_messages}</span>
+            </div>
+          )}
         </div>
+
+        {loadingPlans ? (
+           <div className="text-center text-[var(--accent)] mt-10"><Loader2 className="animate-spin mx-auto" size={32} /></div>
+        ) : (
+          <div className="space-y-4 mt-6">
+            {plans.map((p: any) => {
+              const isCurrent = p.name === currentPlan;
+              return (
+                <div key={p.name} className={`bg-[#111] border rounded-2xl p-5 flex flex-col gap-2 ${isCurrent ? 'border-[var(--accent)]' : 'border-white/10'}`}>
+                  <div className="flex justify-between items-center">
+                    <div className="text-white font-bold text-lg capitalize">{p.name}</div>
+                    <div className="text-[var(--accent)] font-bold">৳{p.price} <span className="text-xs text-white/50 font-normal">/ {p.days} Days</span></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mt-2 text-xs text-white/70">
+                    <div className="bg-black/40 p-2 rounded-lg">Accounts: <span className="text-white font-bold">{p.max_accounts}</span></div>
+                    <div className="bg-black/40 p-2 rounded-lg">Daily Msgs: <span className="text-white font-bold">{p.max_daily_messages}</span></div>
+                    <div className="bg-black/40 p-2 rounded-lg col-span-2">Daily Joins: <span className="text-white font-bold">{p.max_daily_joins}</span></div>
+                  </div>
+                  <button 
+                    disabled={isCurrent}
+                    className={`w-full mt-3 py-3 rounded-xl font-bold text-sm ${isCurrent ? 'bg-white/10 text-white/50' : 'bg-[var(--accent)] text-black'}`}
+                  >
+                    {isCurrent ? "Current Plan" : "Upgrade / Buy Plan"}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     );
   }
@@ -689,7 +730,7 @@ function MeTab({ me }: any) {
             onClick={() => setShowPremium(true)}
           >
             <Crown size={16} className="text-black" />
-            <span className="text-sm font-semibold text-black">No Premium · Tap to get Premium</span>
+            <span className="text-sm font-semibold text-black capitalize">{currentPlan} Plan · Tap to Upgrade</span>
           </div>
         </div>
       </div>
@@ -711,7 +752,7 @@ function MeTab({ me }: any) {
             <div className="text-xs text-white/50">Unlock all features</div>
           </div>
           <div className="flex items-center gap-3">
-             <div className="flex items-center gap-1 bg-[#1cd45a] text-black px-2 py-0.5 rounded-full text-xs font-bold"><Crown size={12}/> 0</div>
+             <div className="flex items-center gap-1 bg-[#1cd45a] text-black px-2 py-0.5 rounded-full text-xs font-bold uppercase"><Crown size={12}/> {currentPlan}</div>
              <ChevronRight size={18} className="text-white/30" />
           </div>
         </div>
