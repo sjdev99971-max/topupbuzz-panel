@@ -638,6 +638,13 @@ function MeTab({ me }: any) {
   const currentPlan = me?.plan || "unverified";
 
   // প্ল্যান লোড করার ফাংশন
+  const handleBuyPlan = (plan: any) => {
+    const text = `Hello, I need the ${plan.name.toUpperCase()} plan.\nPrice: ৳${plan.price}\nDuration: ${plan.days} Days\nMy Username: @${me?.username || "user"}`;
+    navigator.clipboard.writeText(text);
+    alert("Plan details copied to clipboard! Please paste it in the chat.");
+    window.open("https://t.me/DEVELOPER_JAHID_BHAI", "_blank");
+  };
+
   const loadPlans = async () => {
     setLoadingPlans(true);
     try {
@@ -692,9 +699,10 @@ function MeTab({ me }: any) {
                   </div>
                   <button 
                     disabled={isCurrent}
-                    className={`w-full mt-3 py-3 rounded-xl font-bold text-sm ${isCurrent ? 'bg-white/10 text-white/50' : 'bg-[var(--accent)] text-black'}`}
+                    onClick={() => handleBuyPlan(p)}
+                    className={`w-full mt-3 py-3 rounded-xl font-bold text-sm ${isCurrent ? 'bg-white/10 text-white/50' : 'bg-[var(--accent)] text-black active:scale-95 transition-transform'}`}
                   >
-                    {isCurrent ? "Current Plan" : "Upgrade / Buy Plan"}
+                    {isCurrent ? "Current Plan" : "Buy Plan (Contact Admin)"}
                   </button>
                 </div>
               );
