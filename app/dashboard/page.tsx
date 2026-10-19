@@ -593,16 +593,110 @@ function ChatsTab({ accounts }: any) {
 }
 
 function MeTab({ me }: any) {
+  const router = useRouter();
   return (
-    <div className="space-y-6">
-      <div className="glass-card p-6 text-center border-t-2 border-[var(--accent)]">
-        <div className="w-20 h-20 rounded-full mx-auto bg-[#050505] border-2 border-[var(--accent)] flex items-center justify-center overflow-hidden mb-4">
-          {me?.photo_url ? <img src={me.photo_url} className="w-full h-full object-cover" /> : <User size={32} className="text-[var(--accent)]" />}
+    <div className="space-y-4 pb-20">
+      <div className="bg-[#1cd45a] rounded-2xl p-6 relative overflow-hidden">
+        <div className="flex justify-between items-center mb-6 relative z-10">
+           <button className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-black"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M21 12c0 1.2-.4 2.3-1 3.2a7 7 0 0 1-12 0c-.6-.9-1-2-1-3.2a7 7 0 0 1 14 0Z"/></svg></button>
+           <button className="w-8 h-8 rounded-full bg-black/10 flex items-center justify-center text-black"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg></button>
         </div>
-        <h2 className="text-xl font-bold text-white">{me?.first_name || me?.username}</h2>
-        <p className="text-sm text-[var(--dim)] mt-1">@{me?.username}</p>
+        
+        <div className="flex flex-col items-center justify-center text-center relative z-10">
+          <div className="w-24 h-24 rounded-full border-4 border-[#0d1f13] overflow-hidden bg-black mb-3">
+            {me?.photo_url ? <img src={me.photo_url} alt="profile" className="w-full h-full object-cover" /> : <User size={40} className="text-white mt-6 mx-auto" />}
+          </div>
+          <h2 className="text-xl font-bold text-black flex items-center gap-2">
+            <span className="text-black/50">⋮</span> {me?.first_name || "JAHID"} <span className="font-mono text-black/70">&lt;/&gt;</span>
+          </h2>
+          <p className="text-sm text-black/60 font-medium mt-0.5">@{me?.username || "DEVELOPER_JAHID_BHAI"}</p>
+          
+          <div className="mt-4 bg-black/10 px-4 py-1.5 rounded-full flex items-center gap-2">
+            <Crown size={16} className="text-black" />
+            <span className="text-sm font-semibold text-black">No Premium · Tap to get Premium</span>
+          </div>
+        </div>
       </div>
-      <button className="w-full bg-red-500/10 text-red-500 border border-red-500/30 rounded-xl py-3 font-bold" onClick={() => { clearLocal("session"); window.location.href = "/"; }}>Log out</button>
+
+      <div className="flex justify-center -mt-2 mb-4">
+        <button className="bg-white/5 border border-white/10 px-6 py-2 rounded-full text-sm font-medium flex items-center gap-2">
+           <BookOpen size={16} /> Show tutorial
+        </button>
+      </div>
+
+      <div className="space-y-3">
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
+          <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Sparkles size={20} /></div>
+          <div className="flex-1">
+            <div className="text-white font-semibold text-[15px]">Get Premium</div>
+            <div className="text-xs text-white/50">Unlock all features</div>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="flex items-center gap-1 bg-[#1cd45a] text-black px-2 py-0.5 rounded-full text-xs font-bold"><Crown size={12}/> 0</div>
+             <ChevronRight size={18} className="text-white/30" />
+          </div>
+        </div>
+
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
+          <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Gift size={20} /></div>
+          <div className="flex-1">
+            <div className="text-white font-semibold text-[15px]">Tasks</div>
+            <div className="text-xs text-white/50">Earn coins</div>
+          </div>
+          <ChevronRight size={18} className="text-white/30" />
+        </div>
+
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
+          <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Gift size={20} /></div>
+          <div className="flex-1">
+            <div className="text-white font-semibold text-[15px]">Refer & Earn</div>
+            <div className="text-xs text-white/50">Invite friends, earn coins when they j...</div>
+          </div>
+          <ChevronRight size={18} className="text-white/30" />
+        </div>
+
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
+          <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Settings size={20} /></div>
+          <div className="flex-1">
+            <div className="text-white font-semibold text-[15px]">Settings</div>
+            <div className="text-xs text-white/50">Timezone · Forward</div>
+          </div>
+          <ChevronRight size={18} className="text-white/30" />
+        </div>
+      </div>
+
+      {!me && (
+        <div className="bg-[#111] border border-white/5 rounded-2xl p-5 mt-4">
+          <p className="text-sm text-white/70 leading-relaxed">
+            You're not logged in. Log in with your Telegram account to post, auto-post and manage your groups.
+          </p>
+        </div>
+      )}
+
+      <div className="bg-[#111] border border-white/5 rounded-2xl p-2 mt-4 space-y-1">
+        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer">
+          <FileText size={18} className="text-white/60" />
+          <span className="flex-1 text-sm text-white/90 font-medium">Terms & Conditions</span>
+          <ChevronRight size={16} className="text-white/30" />
+        </div>
+        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer">
+          <ShieldAlert size={18} className="text-white/60" />
+          <span className="flex-1 text-sm text-white/90 font-medium">Privacy Policy</span>
+          <ChevronRight size={16} className="text-white/30" />
+        </div>
+        <div className="flex items-center gap-3 p-3 hover:bg-white/5 rounded-xl cursor-pointer">
+          <Headphones size={18} className="text-white/60" />
+          <span className="flex-1 text-sm text-white/90 font-medium">Support</span>
+          <ChevronRight size={16} className="text-white/30" />
+        </div>
+      </div>
+
+      <button 
+        onClick={() => { clearLocal("session"); router.push("/login"); }} 
+        className="w-full bg-[#1cd45a] text-black py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4 shadow-[0_0_20px_rgba(28,212,90,0.3)]"
+      >
+        <LogIn size={20} /> Log in
+      </button>
     </div>
   );
 }

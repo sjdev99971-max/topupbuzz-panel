@@ -1,277 +1,109 @@
 "use client";
-
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { sendOtp, verifyOtp, saveLocal, getLocal } from "@/lib/api";
-
-type Step = "phone" | "otp" | "password" | "success";
+import { ChevronLeft, Send, User, ChevronDown, ArrowRight, Delete } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState<Step>("phone");
-  const [phone, setPhone] = useState("+880");
-  const [sessionId, setSessionId] = useState("");
-  const [otp, setOtp] = useState(["", "", "", "", ""]);
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null);
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-
-  const handleSendOtp = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      const sess = getLocal("session");
-      const tgId = sess?.id;
-      const res = await sendOtp(phone.trim(), tgId);
-      setSessionId(res.session_id);
-      setStep("otp");
-      setTimeout(() => otpRefs.current[0]?.focus(), 100);
-    } catch (e: any) {
-      setError(e?.response?.data?.detail || e.message || "failed to send code");
-    } finally {
-      setLoading(false);
-    }
+  const [phone, setPhone] = useState("");
+  
+  const handleNumClick = (num: string) => {
+    if (phone.length < 15) setPhone(prev => prev + num);
   };
-
-  const handleOtpChange = (i: number, val: string) => {
-    const digit = val.replace(/\D/g, "").slice(-1);
-    const next = [...otp];
-    next[i] = digit;
-    setOtp(next);
-    if (digit && i < otp.length - 1) otpRefs.current[i + 1]?.focus();
-  };
-
-  const handleOtpKey = (i: number, e: React.KeyboardEvent) => {
-    if (e.key === "Backspace" && !otp[i] && i > 0) otpRefs.current[i - 1]?.focus();
-    if (e.key === "Enter") handleVerify();
-  };
-
-  const handleOtpPaste = (e: React.ClipboardEvent) => {
-    const txt = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 5);
-    if (txt.length) {
-      const next = txt.split("").concat(["", "", "", "", ""]).slice(0, 5);
-      setOtp(next);
-      otpRefs.current[Math.min(txt.length, 4)]?.focus();
-      e.preventDefault();
-    }
-  };
-
-  const handleVerify = async () => {
-    const code = otp.join("");
-    if (code.length < 5) { setError("enter full 5-digit code"); return; }
-    setError(""); setLoading(true);
-    try {
-      const res = await verifyOtp(sessionId, code, password || undefined);
-      if (res.needs_password) {
-        setStep("password");
-        setError("");
-        setLoading(false);
-        return;
-      }
-      saveLocal("account", res);
-      setUserInfo(res);
-      setStep("success");
-      setTimeout(() => router.push("/dashboard"), 1800);
-    } catch (e: any) {
-      setError(e?.response?.data?.detail || e.message || "verification failed");
-      setOtp(["", "", "", "", ""]);
-      otpRefs.current[0]?.focus();
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handlePassword = async () => {
-    setError(""); setLoading(true);
-    try {
-      const code = otp.join("");
-      const res = await verifyOtp(sessionId, code, password);
-      saveLocal("account", res);
-      setUserInfo(res);
-      setStep("success");
-      setTimeout(() => router.push("/dashboard"), 1800);
-    } catch (e: any) {
-      setError(e?.response?.data?.detail || "wrong password");
-    } finally {
-      setLoading(false);
-    }
+  
+  const handleDelete = () => {
+    setPhone(prev => prev.slice(0, -1));
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <nav className="px-6 md:px-10 py-5 flex items-center justify-between border-b border-[var(--border)]/40">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="text-[var(--cyan)] text-xl">◆</div>
-          <span className="text-[var(--text)] text-sm">
-            topupbuzz<span className="text-[var(--cyan)]">.</span>control
-          </span>
-        </Link>
-        <Link href="/" className="text-xs text-[var(--dim)] hover:text-[var(--cyan)]">← back</Link>
-      </nav>
+    <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex flex-col">
+      <div className="flex items-center justify-between p-4 pt-6">
+        <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+          <ChevronLeft size={20} />
+        </button>
+        <button className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+        </button>
+      </div>
 
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-md">
-          {/* PROGRESS */}
-          <div className="flex items-center gap-2 mb-6 text-xs">
-            {["phone", "code", "verify"].map((s, i) => {
-              const active = (step === "phone" && i === 0) || (step === "otp" && i === 1) || (step === "password" && i === 1) || (step === "success" && i === 2);
-              const done = (step === "otp" && i === 0) || ((step === "password" || step === "success") && i <= 1);
-              return (
-                <div key={s} className="flex items-center gap-2 flex-1">
-                  <div className={`w-6 h-6 rounded-full border flex items-center justify-center text-[10px] ${
-                    done ? "bg-[var(--cyan)]/20 border-[var(--cyan)] text-[var(--cyan)]"
-                    : active ? "border-[var(--cyan)] text-[var(--cyan)] pulse-cyan"
-                    : "border-[var(--border2)] text-[var(--dim2)]"
-                  }`}>
-                    {done ? "✓" : i + 1}
-                  </div>
-                  <span className={`text-[10px] uppercase tracking-wider ${active || done ? "text-[var(--cyan)]" : "text-[var(--dim2)]"}`}>{s}</span>
-                  {i < 2 && <div className={`flex-1 h-px ${done ? "bg-[var(--cyan)]/40" : "bg-[var(--border2)]"}`} />}
-                </div>
-              );
-            })}
+      <div className="flex-1 px-6 flex flex-col mt-4">
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 bg-[#1cd45a] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(28,212,90,0.2)]">
+            <Send size={36} className="text-black ml-1" />
           </div>
+        </div>
 
-          <div className="card p-6 md:p-8 w-full max-w-md mx-auto overflow-hidden">
-            {/* HEADER */}
-            <div className="mb-6">
-              <h1 className="text-xl mb-1.5">
-                <span className="text-[var(--dim)]">$</span>{" "}
-                {step === "phone" && "authenticate"}
-                {step === "otp" && "verify code"}
-                {step === "password" && "2fa required"}
-                {step === "success" && "welcome"}
-              </h1>
-              <p className="text-xs text-[var(--dim)]">
-                {step === "phone" && "enter your telegram phone number"}
-                {step === "otp" && "check your telegram app for the code"}
-                {step === "password" && "your account has 2-step verification enabled"}
-                {step === "success" && "account connected successfully"}
-              </p>
-            </div>
+        <h1 className="text-3xl font-bold text-center mb-2">
+          Echoo <span className="text-[#1cd45a]">Post</span>
+        </h1>
+        <p className="text-center text-white/50 text-[15px] mb-8">
+          Connect your Telegram account to get started.
+        </p>
 
-            {/* ERROR */}
-            {error && (
-              <div className="mb-4 p-3 rounded border border-[var(--danger)]/30 bg-[var(--danger)]/5 text-xs text-[var(--danger)]">
-                ✕ {error}
-              </div>
-            )}
+        <button className="w-full bg-[#2b8bf5] text-white py-4 rounded-2xl font-semibold text-[16px] flex items-center justify-center gap-2 mb-6">
+          <User size={20} /> Share Telegram number
+        </button>
 
-            {/* STEP: PHONE */}
-            {step === "phone" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-[var(--dim)] mb-2">
-                    phone number
-                  </label>
-                  <input
-                    type="tel"
-                    className="inp"
-                    placeholder="+8801712345678"
-                    value={phone}
-                    onChange={e => setPhone(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handleSendOtp()}
-                    autoFocus
-                  />
-                  <p className="text-[10px] text-[var(--dim2)] mt-1.5">
-                    include country code, e.g. +880 for bangladesh
-                  </p>
-                </div>
-                <button
-                  onClick={handleSendOtp}
-                  disabled={loading || phone.length < 8}
-                  className="btn btn-primary w-full py-3"
-                >
-                  {loading ? <><span className="spin inline-block">◌</span> sending…</> : "send code →"}
-                </button>
-              </div>
-            )}
+        <div className="flex items-center gap-4 mb-6">
+          <div className="h-[1px] flex-1 bg-white/10"></div>
+          <span className="text-xs text-white/40 font-medium">or enter manually</span>
+          <div className="h-[1px] flex-1 bg-white/10"></div>
+        </div>
 
-            {/* STEP: OTP */}
-            {step === "otp" && (
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-[var(--dim)] mb-3">
-                    verification code
-                  </label>
-                  <div className="otp-row flex gap-2 justify-center w-full max-w-full" onPaste={handleOtpPaste}>
-                    {otp.map((d, i) => (
-                      <input
-                        key={i}
-                        ref={el => { otpRefs.current[i] = el; }}
-                        type="text"
-                        inputMode="numeric"
-                        maxLength={1}
-                        value={d}
-                        onChange={e => handleOtpChange(i, e.target.value)}
-                        onKeyDown={e => handleOtpKey(i, e)}
-                        className="otp-box"
-                      />
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-[var(--dim2)] mt-3 text-center">
-                    sent to <span className="text-[var(--cyan)]">{phone}</span> via telegram
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  <button onClick={() => { setStep("phone"); setOtp(["","","","",""]); setError(""); }} className="btn flex-1">
-                    ← back
-                  </button>
-                  <button
-                    onClick={handleVerify}
-                    disabled={loading || otp.join("").length < 5}
-                    className="btn btn-primary flex-1"
-                  >
-                    {loading ? <><span className="spin inline-block">◌</span> verifying…</> : "verify →"}
-                  </button>
-                </div>
-              </div>
-            )}
+        <div className="relative mb-3">
+          <select className="w-full bg-[#141414] border border-white/10 text-white/60 appearance-none rounded-2xl px-5 py-4 outline-none focus:border-[#1cd45a]">
+            <option>Country</option>
+            <option>Bangladesh (+880)</option>
+            <option>India (+91)</option>
+            <option>USA (+1)</option>
+          </select>
+          <ChevronDown size={20} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+        </div>
 
-            {/* STEP: PASSWORD */}
-            {step === "password" && (
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] uppercase tracking-wider text-[var(--dim)] mb-2">
-                    2-step verification password
-                  </label>
-                  <input
-                    type="password"
-                    className="inp"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    onKeyDown={e => e.key === "Enter" && handlePassword()}
-                    autoFocus
-                  />
-                </div>
-                <button onClick={handlePassword} disabled={loading || !password} className="btn btn-primary w-full py-3">
-                  {loading ? <><span className="spin inline-block">◌</span> verifying…</> : "confirm →"}
-                </button>
-              </div>
-            )}
+        <div className="flex items-center bg-[#141414] border border-white/10 rounded-2xl px-5 py-4 mb-4 focus-within:border-[#1cd45a] transition-colors">
+          <span className="text-[#1cd45a] text-lg mr-3 font-semibold">+</span>
+          <input 
+            type="text" 
+            value={phone}
+            readOnly
+            placeholder="" 
+            className="bg-transparent outline-none flex-1 text-lg tracking-widest placeholder-white/20"
+          />
+          <div className="h-6 w-[2px] bg-[#1cd45a] animate-pulse"></div>
+        </div>
 
-            {/* STEP: SUCCESS */}
-            {step === "success" && (
-              <div className="text-center py-4">
-                <div className="w-16 h-16 rounded-full border-2 border-[var(--cyan)] flex items-center justify-center mx-auto mb-4 pulse-cyan">
-                  <span className="text-[var(--cyan)] text-3xl">✓</span>
-                </div>
-                <p className="text-[var(--text)] mb-1">connected</p>
-                <p className="text-xs text-[var(--dim)]">
-                  {userInfo?.phone} {userInfo?.username && `(@${userInfo.username})`}
-                </p>
-                <p className="text-[10px] text-[var(--dim2)] mt-3">redirecting to dashboard…</p>
-              </div>
-            )}
-          </div>
+        <div className="flex justify-end mb-6">
+          <button 
+            onClick={() => console.log("Phone:", phone)}
+            className="w-14 h-14 bg-[#1cd45a] text-black rounded-full flex items-center justify-center shadow-lg hover:opacity-90 transition-opacity"
+          >
+            <ArrowRight size={24} />
+          </button>
+        </div>
 
-          <p className="text-[10px] text-[var(--dim2)] text-center mt-4">
-            session stored securely · never shared
-          </p>
+        <div className="grid grid-cols-3 gap-3 mt-auto pb-8">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+            <button 
+              key={num} 
+              onClick={() => handleNumClick(num.toString())}
+              className="bg-[#141414] rounded-2xl py-4 text-2xl font-semibold active:bg-white/10 transition-colors"
+            >
+              {num}
+            </button>
+          ))}
+          <div className="bg-transparent"></div>
+          <button 
+            onClick={() => handleNumClick("0")}
+            className="bg-[#141414] rounded-2xl py-4 text-2xl font-semibold active:bg-white/10 transition-colors"
+          >
+            0
+          </button>
+          <button 
+            onClick={handleDelete}
+            className="bg-[#141414] rounded-2xl flex items-center justify-center active:bg-white/10 transition-colors"
+          >
+            <Delete size={24} />
+          </button>
         </div>
       </div>
     </div>
