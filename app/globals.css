@@ -60,3 +60,51 @@ body {
   color: var(--dim); font-size: 10px; font-weight: 500; cursor: pointer;
 }
 .nav-item.active { color: var(--accent); }
+
+/* Glassmorphism Effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+/* Login Keypad */
+.keypad-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 24px;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.keypad-btn:active { background: rgba(255, 255, 255, 0.15); }
+
+/* Glassmorphism Effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+}
+
+/* Login Keypad */
+.keypad-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 24px;
+  font-weight: 500;
+  color: white;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.keypad-btn:active { background: rgba(255, 255, 255, 0.15); }
