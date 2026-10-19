@@ -16,8 +16,9 @@ export default function LoginPage() {
   const [sessionId, setSessionId] = useState("");
   const [tgApp, setTgApp] = useState<any>(null);
 
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://160.236.58.192:8000";
+
   useEffect(() => {
-    // Initialize Telegram WebApp
     if (typeof window !== "undefined" && (window as any).Telegram?.WebApp) {
       const tg = (window as any).Telegram.WebApp;
       tg.ready();
@@ -26,26 +27,28 @@ export default function LoginPage() {
     }
   }, []);
 
-  // 1. Share Number via Telegram WebApp
   const handleShareContact = () => {
     if (!tgApp) {
-      setError("Telegram WebApp not detected. Please enter manually.");
+      setError("Please open this app inside Telegram to share your number.");
       return;
     }
-    tgApp.requestContact((sent: boolean, response: any) => {
-      if (sent && response && response.phone_number) {
-        // response.phone_number usually comes as "8801XXXXXXXXX"
-        const rawNum = response.phone_number;
-        const code = "+" + rawNum.substring(0, 3); // Basic split, assuming +880
-        const num = rawNum.substring(3);
-        setCountryCode(code);
-        setPhone(num);
-        sendOtpToBackend(code + num);
-      }
-    });
+    try {
+      tgApp.requestContact((shared: boolean, response: any) => {
+        if (shared && response && response.phone_number) {
+          let rawNum = response.phone_number;
+          if (rawNum.startsWith("+")) rawNum = rawNum.substring(1);
+          setPhone(rawNum);
+          setCountryCode("+"); // Since telegram gives full number
+          sendOtpToBackend("+" + rawNum);
+        } else {
+          setError("Contact sharing was cancelled.");
+        }
+      });
+    } catch (e: any) {
+      setError("Error: " + e.message);
+    }
   };
 
-  // 2. Manual Number Keypad Handler
   const handleNumClick = (num: string) => {
     if (phone.length < 15) setPhone(prev => prev + num);
   };
@@ -54,12 +57,11 @@ export default function LoginPage() {
     setPhone(prev => prev.slice(0, -1));
   };
 
-  // 3. Send OTP API Call
   const sendOtpToBackend = async (fullPhone: string) => {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://api.yourdomain.com"}/auth/send-otp`, {
+      const res = await fetch(`${API_URL}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ phone: fullPhone })
@@ -70,7 +72,7 @@ export default function LoginPage() {
       setSessionId(data.session_id);
       setStep("otp");
     } catch (err: any) {
-      setError(err.message || "Something went wrong!");
+      setError(err.message || "Something went wrong! Check backend connection.");
     }
     setLoading(false);
   };
@@ -80,13 +82,12 @@ export default function LoginPage() {
     sendOtpToBackend(countryCode + phone);
   };
 
-  // 4. Verify OTP API Call
   const handleVerifyOtp = async () => {
-    if (!otp || otp.length < 4) return setError("Enter valid OTP");
+    if (!otp || otp.length < 3) return setError("Enter valid OTP");
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "https://api.yourdomain.com"}/auth/verify-otp`, {
+      const res = await fetch(`${API_URL}/auth/verify-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ session_id: sessionId, code: otp, password: password || null })
@@ -101,7 +102,6 @@ export default function LoginPage() {
       
       if (!res.ok) throw new Error(data.detail || "Invalid OTP");
       
-      // Save Session and Redirect
       saveLocal("session", data);
       router.push("/dashboard");
     } catch (err: any) {
@@ -109,8 +109,6 @@ export default function LoginPage() {
     }
     setLoading(false);
   };
-
-  // --- UI RENDERERS ---
 
   const renderPhoneStep = () => (
     <>
