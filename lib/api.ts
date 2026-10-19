@@ -116,8 +116,6 @@ export const getAnalyticsCost = () => api.get("/analytics/cost").then(r => r.dat
 export const getMyAccounts = () => api.get("/my-accounts").then(r => r.data);
 export const getFolders = () => api.get("/folders").then(r => r.data);
 export const createFolder = (name: string, groups: any[]) => api.post("/folders", { name, groups }).then(r => r.data);
-export const getSavedPosts = () => api.get("/posts").then(r => r.data);
-export const savePost = (title: string, content: string) => api.post("/posts", { title, content }).then(r => r.data);
 export const getReferralLink = () => api.get("/referral/link").then(r => r.data);
 export const redeemCoins = (days: number, cost: number) => api.post("/redeem-coins", { days, cost }).then(r => r.data);
 
