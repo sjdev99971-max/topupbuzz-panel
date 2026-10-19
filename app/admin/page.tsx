@@ -29,6 +29,8 @@ export default function AdminPage() {
   const [broadcast, setBroadcast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editPlan, setEditPlan] = useState<any>({});
+  const [quickId, setQuickId] = useState("");
+  const [quickPlan, setQuickPlan] = useState("basic");
   const [confirmStealth, setConfirmStealth] = useState<any>(null);
 
   useEffect(() => {
@@ -100,6 +102,20 @@ export default function AdminPage() {
       toast(`User ${uid} → ${plan}`, "success");
       refresh();
     } catch { toast("Update failed", "error"); }
+  };
+
+  const handleQuickDeliver = async () => {
+    if (!quickId.trim()) return toast("Enter User ID", "error");
+    setBusy(true);
+    try {
+      await adminSetUserPlan(Number(quickId), quickPlan);
+      toast(`✅ Successfully delivered ${quickPlan} to ${quickId}`, "success");
+      setQuickId(""); // Clear input
+      refresh(); // Refresh list
+    } catch { 
+      toast("Delivery failed. Check User ID.", "error"); 
+    }
+    setBusy(false);
   };
 
   const savePlan = async (p: any) => {
@@ -294,6 +310,44 @@ export default function AdminPage() {
                 </div>
                 <input className="inp text-xs py-2 max-w-[220px]" placeholder="Search id / username…"
                   value={q} onChange={e => setQ(e.target.value)} />
+              </div>
+
+              {/* QUICK DELIVER BOX */}
+              <div className="card p-4 bg-[var(--accent2)]/5 border-[var(--accent2)]/30 shadow-[0_0_15px_rgba(0,150,255,0.1)]">
+                <div className="text-sm font-semibold mb-3 flex items-center gap-2">
+                  ⚡ Quick Deliver (Fast Upgrade)
+                </div>
+                <div className="flex flex-wrap items-end gap-3">
+                  <div className="flex-1 min-w-[150px]">
+                    <label className="text-[10px] text-[var(--dim)] mb-1 block">User Telegram ID</label>
+                    <input 
+                      type="number" 
+                      placeholder="e.g. 123456789" 
+                      value={quickId} 
+                      onChange={e => setQuickId(e.target.value)}
+                      className="inp py-2 text-sm w-full" 
+                    />
+                  </div>
+                  <div className="w-[130px]">
+                    <label className="text-[10px] text-[var(--dim)] mb-1 block">Select Plan</label>
+                    <select 
+                      value={quickPlan} 
+                      onChange={e => setQuickPlan(e.target.value)}
+                      className="inp py-2 text-sm w-full"
+                    >
+                      <option value="basic">Basic</option>
+                      <option value="pro">Pro</option>
+                      <option value="max">Max</option>
+                    </select>
+                  </div>
+                  <button 
+                    onClick={handleQuickDeliver} 
+                    disabled={busy}
+                    className="btn btn-primary py-2 px-6 h-[38px]"
+                  >
+                    {busy ? "Delivering..." : "Deliver Now"}
+                  </button>
+                </div>
               </div>
 
               {loading ? <SkelList count={4} /> : (
