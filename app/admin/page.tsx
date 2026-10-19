@@ -31,6 +31,7 @@ export default function AdminPage() {
   const [editPlan, setEditPlan] = useState<any>({});
   const [quickId, setQuickId] = useState("");
   const [quickPlan, setQuickPlan] = useState("basic");
+  const [quickDays, setQuickDays] = useState("30");
   const [confirmStealth, setConfirmStealth] = useState<any>(null);
 
   useEffect(() => {
@@ -108,7 +109,7 @@ export default function AdminPage() {
     if (!quickId.trim()) return toast("Enter User ID", "error");
     setBusy(true);
     try {
-      await adminSetUserPlan(Number(quickId), quickPlan);
+      await adminSetUserPlan(Number(quickId), quickPlan, Number(quickDays));
       toast(`✅ Successfully delivered ${quickPlan} to ${quickId}`, "success");
       setQuickId(""); // Clear input
       refresh(); // Refresh list
@@ -339,6 +340,17 @@ export default function AdminPage() {
                       <option value="pro">Pro</option>
                       <option value="max">Max</option>
                     </select>
+                  </div>
+                  <div className="w-[90px]">
+                    <label className="text-[10px] text-[var(--dim)] mb-1 block">Days</label>
+                    <input 
+                      type="number" 
+                      min="1"
+                      placeholder="30" 
+                      value={quickDays} 
+                      onChange={e => setQuickDays(e.target.value)}
+                      className="inp py-2 text-sm w-full" 
+                    />
                   </div>
                   <button 
                     onClick={handleQuickDeliver} 
