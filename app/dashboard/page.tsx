@@ -628,6 +628,42 @@ function ChatsTab({ accounts }: any) {
 
 function MeTab({ me }: any) {
   const router = useRouter();
+  const [showPremium, setShowPremium] = useState(false);
+
+  // টেলিগ্রামের আজেবাজে ইনভিজিবল ক্যারেক্টার ফিল্টার করার লজিক
+  const cleanName = me?.first_name?.replace(/[^\w\s\u0980-\u09FF]/gi, '').trim() || me?.username || "User";
+  const avatarUrl = me?.photo_url || `https://apis.topup.buzz/avatar/${me?.user_id || me?.id}`;
+
+  if (showPremium) {
+    return (
+      <div className="space-y-4 pb-20">
+        <div className="flex items-center gap-3 mb-6">
+           <button onClick={() => setShowPremium(false)} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Premium Plans</h2>
+        </div>
+        
+        <div className="bg-[#111] border border-[var(--accent)]/30 rounded-2xl p-6 text-center space-y-4 shadow-[0_0_20px_rgba(28,212,90,0.1)]">
+          <Crown size={48} className="text-[var(--accent)] mx-auto" />
+          <h3 className="text-xl font-bold text-white">Unlock All Features</h3>
+          <p className="text-sm text-white/60">Get unlimited broadcasts, auto-joins, and advanced analytics.</p>
+          
+          <div className="space-y-3 mt-6">
+             <div className="bg-black/50 border border-white/10 rounded-xl p-4 flex justify-between items-center">
+                <div className="text-left"><div className="text-white font-bold">Starter Pack</div><div className="text-xs text-white/50">30 Days</div></div>
+                <div className="text-[var(--accent)] font-bold">500 Coins</div>
+             </div>
+             <div className="bg-black/50 border border-white/10 rounded-xl p-4 flex justify-between items-center">
+                <div className="text-left"><div className="text-white font-bold">Pro Pack</div><div className="text-xs text-white/50">90 Days</div></div>
+                <div className="text-[var(--accent)] font-bold">1200 Coins</div>
+             </div>
+          </div>
+
+          <button className="w-full mt-6 bg-[var(--accent)] text-black py-3 rounded-xl font-bold">Buy Coins</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 pb-20">
       <div className="bg-[#1cd45a] rounded-2xl p-6 relative overflow-hidden">
@@ -637,15 +673,21 @@ function MeTab({ me }: any) {
         </div>
         
         <div className="flex flex-col items-center justify-center text-center relative z-10">
-          <div className="w-24 h-24 rounded-full border-4 border-[#0d1f13] overflow-hidden bg-black mb-3 relative flex items-center justify-center">
-            <img src={`https://apis.topup.buzz/avatar/${me?.user_id || 0}`} alt="profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${me?.first_name || "User"}&background=1cd45a&color=000`; }} />
+          <div className="w-24 h-24 rounded-full border-4 border-[#0d1f13] overflow-hidden bg-[#0d1f13] mb-3 flex items-center justify-center relative">
+            <img src={avatarUrl} alt="profile" className="w-full h-full object-cover relative z-10" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <div className="absolute inset-0 flex items-center justify-center z-0">
+               <User size={40} className="text-white/50" />
+            </div>
           </div>
-          <h2 className="text-xl font-bold text-black flex items-center gap-2">
-            <span className="text-black/50">⋮</span> {me?.first_name || "JAHID"} <span className="font-mono text-black/70">&lt;/&gt;</span>
+          <h2 className="text-xl font-bold text-black flex items-center justify-center gap-1">
+            {cleanName} <span className="font-mono text-black/70">&lt;/&gt;</span>
           </h2>
-          <p className="text-sm text-black/60 font-medium mt-0.5">@{me?.username || "DEVELOPER_JAHID_BHAI"}</p>
+          <p className="text-sm text-black/60 font-medium mt-0.5">@{me?.username || "user"}</p>
           
-          <div className="mt-4 bg-black/10 px-4 py-1.5 rounded-full flex items-center gap-2">
+          <div 
+            className="mt-4 bg-black/10 px-4 py-1.5 rounded-full flex items-center gap-2 cursor-pointer hover:bg-black/20 transition-colors" 
+            onClick={() => setShowPremium(true)}
+          >
             <Crown size={16} className="text-black" />
             <span className="text-sm font-semibold text-black">No Premium · Tap to get Premium</span>
           </div>
@@ -659,7 +701,10 @@ function MeTab({ me }: any) {
       </div>
 
       <div className="space-y-3">
-        <div className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer">
+        <div 
+          className="bg-[#111] border border-white/5 rounded-2xl p-4 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" 
+          onClick={() => setShowPremium(true)}
+        >
           <div className="w-10 h-10 rounded-full bg-[#1cd45a]/10 flex items-center justify-center text-[#1cd45a]"><Sparkles size={20} /></div>
           <div className="flex-1">
             <div className="text-white font-semibold text-[15px]">Get Premium</div>
@@ -727,9 +772,9 @@ function MeTab({ me }: any) {
 
       <button 
         onClick={() => { clearLocal("session"); router.push("/login"); }} 
-        className="w-full bg-[#1cd45a] text-black py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4 shadow-[0_0_20px_rgba(28,212,90,0.3)]"
+        className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4"
       >
-        <LogIn size={20} /> Log in
+        <LogIn size={20} /> Log out
       </button>
     </div>
   );
