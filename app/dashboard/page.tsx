@@ -81,7 +81,7 @@ export default function Dashboard() {
 
       {/* MAIN CONTENT ROUTING */}
       {tab === "home" && <HomeTab stats={stats} accounts={accounts} loading={loading} setTab={setTab} />}
-      {tab === "library" && <LibraryTab setTab={setTab} />}
+      {tab === "library" && <LibraryTab setTab={setTab} accounts={accounts} />}
       {tab === "broadcast" && <BroadcastTab accounts={accounts} />}
       {tab === "chats" && <ChatsTab accounts={accounts} />}
       {tab === "me" && <MeTab me={me} />}
@@ -148,25 +148,144 @@ function HomeTab({ stats, accounts, loading, setTab }: any) {
   );
 }
 
-// --- LIBRARY TAB (Manage Groups) ---
-function LibraryTab({ setTab }: any) {
+// --- LIBRARY TAB (Manage Folders) ---
+function LibraryTab({ setTab, accounts }: any) {
   const [folders, setFolders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
+  
+  // Folder Creation State
+  const [selectedAcc, setSelectedAcc] = useState("");
+  const [dialogs, setDialogs] = useState<any[]>([]);
+  const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
+  const [folderName, setFolderName] = useState("");
+  const [loadingDlgs, setLoadingDlgs] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  useEffect(() => { getFolders().then(f => { setFolders(f); setLoading(false); }).catch(() => setLoading(false)); }, []);
+  useEffect(() => { 
+    getFolders().then(f => { setFolders(f); setLoading(false); }).catch(() => setLoading(false)); 
+  }, []);
+
+  const loadGroups = async (accId: string) => {
+    setSelectedAcc(accId); if (!accId) return;
+    setLoadingDlgs(true); setDialogs([]);
+    try { 
+      const res = await refreshDialogs(accId); 
+      setDialogs([...(res.groups||[]), ...(res.channels||[])]); 
+    } catch { 
+      alert("Failed to load groups."); 
+    }
+    setLoadingDlgs(false);
+  };
+
+  const handleCreateFolder = async () => {
+    if (!folderName || selectedGroups.length === 0) return alert("Enter folder name and select groups.");
+    setSaving(true);
+    try {
+      const groupsData = dialogs.filter(d => selectedGroups.includes(d.id));
+      
+      // 1. Save Folder to Database
+      await createFolder(folderName, groupsData);
+      
+      // 2. Start Auto-Join in Background
+      await joinMissingGroups(selectedAcc, groupsData);
+      
+      alert("Folder created & background joining started!");
+      setIsCreating(false);
+      setFolderName(""); setSelectedGroups([]); setSelectedAcc(""); setDialogs([]);
+      
+      // Reload folders
+      getFolders().then(setFolders);
+    } catch (e: any) {
+      alert("Failed to save folder: " + e.message);
+    }
+    setSaving(false);
+  };
+
+  const handleImport = async (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (event: any) => {
+      try {
+        const data = JSON.parse(event.target.result);
+        if (data.name && data.groups) {
+           await createFolder(data.name, data.groups);
+           if (accounts.length > 0) await joinMissingGroups(accounts[0].id, data.groups);
+           alert("Folder Imported!");
+           getFolders().then(setFolders);
+        }
+      } catch { alert("Invalid JSON file."); }
+    };
+    reader.readAsText(file);
+  };
+
+  if (isCreating) {
+    return (
+      <div className="space-y-4 pb-10">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={() => setIsCreating(false)} className="text-[var(--dim)] bg-white/5 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Create New Folder</h2>
+        </div>
+
+        <div className="glass-card p-4">
+          <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">1. Select Account to load groups</label>
+          <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => loadGroups(e.target.value)}>
+            <option value="">-- Choose Account --</option>
+            {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+          </select>
+          {loadingDlgs && <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-3"><Loader2 size={14} className="animate-spin" /> Fetching dialogs...</div>}
+        </div>
+
+        {dialogs.length > 0 && (
+          <div className="glass-card p-4">
+             <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">2. Select Groups ({selectedGroups.length} selected)</label>
+             <div className="max-h-60 overflow-y-auto bg-[#050505] border border-[#1f1f22] rounded-xl p-2 custom-scrollbar">
+               {dialogs.map((d: any) => (
+                 <label key={d.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer">
+                   <input type="checkbox" checked={selectedGroups.includes(d.id)} onChange={e => { 
+                     if (e.target.checked) setSelectedGroups([...selectedGroups, d.id]); 
+                     else setSelectedGroups(selectedGroups.filter(id => id !== d.id)); 
+                   }} className="accent-[var(--accent)] w-4 h-4" />
+                   <span className="text-sm text-white truncate flex-1">{d.title}</span>
+                 </label>
+               ))}
+             </div>
+          </div>
+        )}
+
+        <div className="glass-card p-4">
+          <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">3. Folder Name</label>
+          <input type="text" className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" placeholder="e.g. VIP Groups, Buy Sell..." value={folderName} onChange={e => setFolderName(e.target.value)} />
+        </div>
+
+        <button onClick={handleCreateFolder} disabled={saving} className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold text-lg flex justify-center gap-2">
+          {saving ? <><Loader2 size={20} className="animate-spin" /> Saving...</> : "Save Folder & Auto-Join"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold text-white">Library</h2>
-        <button className="bg-[var(--accent)] text-black px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2" onClick={() => setTab("broadcast")}><Plus size={16}/> New Folder</button>
+        <div className="flex gap-2">
+          <label className="bg-white/5 text-white px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1 cursor-pointer hover:bg-white/10">
+            <Upload size={16}/> Import
+            <input type="file" accept=".json" className="hidden" onChange={handleImport} />
+          </label>
+          <button className="bg-[var(--accent)] text-black px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(0,255,102,0.3)]" onClick={() => setIsCreating(true)}>
+            <Plus size={16}/> New Folder
+          </button>
+        </div>
       </div>
       
       <h3 className="text-sm font-bold text-[var(--dim)] mb-2">My Folders</h3>
       {loading ? (
         <><SkeletonCard /><SkeletonCard /></>
       ) : folders.length === 0 ? (
-        <div className="text-center text-[var(--dim)] text-sm mt-10">No folders yet. Create one!</div>
+        <div className="text-center text-[var(--dim)] text-sm mt-10 glass-card p-8">No folders yet. Create or Import one!</div>
       ) : (
         folders.map((f, i) => (
           <div key={i} className="glass-card p-4 flex items-center gap-3">
@@ -193,11 +312,7 @@ function BroadcastTab({ accounts }: any) {
   const [selectedSaved, setSelectedSaved] = useState("");
   const [result, setResult] = useState<{success: number, failed: number} | null>(null);
   
-  // Folder Save State
-  const [folderName, setFolderName] = useState("");
-  const [showSaveFolder, setShowSaveFolder] = useState(false);
-
-  const reset = () => { setMode("list"); setContent(""); setSelectedGroups([]); setResult(null); setSelectedAcc(""); setDialogs([]); setShowSaveFolder(false); };
+  const reset = () => { setMode("list"); setContent(""); setSelectedGroups([]); setResult(null); setSelectedAcc(""); setDialogs([]); };
 
   const loadGroups = async (accId: string) => {
     setSelectedAcc(accId); if (!accId) return;
@@ -235,19 +350,6 @@ function BroadcastTab({ accounts }: any) {
       alert("Broadcast failed: " + (e.response?.data?.detail || e.message)); 
     }
     setSending(false);
-  };
-
-  // Save as Folder Logic
-  const saveSelectedToFolder = async () => {
-    if (!folderName || selectedGroups.length === 0) return alert("Enter folder name and select groups.");
-    const groupsData = dialogs.filter(d => selectedGroups.includes(d.id));
-    await createFolder(folderName, groupsData);
-    
-    // Trigger auto-join in background
-    await joinMissingGroups(selectedAcc, groupsData);
-    
-    alert("Folder saved & background joining started!");
-    setShowSaveFolder(false); setFolderName("");
   };
 
   if (mode === "list") {
@@ -302,19 +404,8 @@ function BroadcastTab({ accounts }: any) {
 
           {dialogs.length > 0 && (
             <div className="glass-card p-4">
-               <div className="flex justify-between items-center mb-2">
-                 <label className="text-xs text-[var(--dim)] font-semibold">2. Target Groups ({selectedGroups.length})</label>
-                 <button onClick={() => setShowSaveFolder(!showSaveFolder)} className="text-xs text-[var(--accent)] font-bold flex items-center gap-1"><Folder size={12}/> Save to Folder</button>
-               </div>
-               
-               {showSaveFolder && (
-                 <div className="bg-[var(--accent-dim)] p-3 rounded-xl mb-3 flex gap-2">
-                   <input type="text" placeholder="Folder Name" value={folderName} onChange={e => setFolderName(e.target.value)} className="flex-1 bg-black/50 px-3 py-1 rounded-lg text-sm outline-none" />
-                   <button onClick={saveSelectedToFolder} className="bg-[var(--accent)] text-black px-3 py-1 rounded-lg text-xs font-bold">Save & Auto-Join</button>
-                 </div>
-               )}
-
-               <div className="max-h-60 overflow-y-auto bg-[#050505] border border-[#1f1f22] rounded-xl p-2">
+               <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">2. Target Groups ({selectedGroups.length})</label>
+               <div className="max-h-60 overflow-y-auto bg-[#050505] border border-[#1f1f22] rounded-xl p-2 custom-scrollbar">
                  {dialogs.map((d: any) => (
                    <label key={d.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer">
                      <input type="checkbox" checked={selectedGroups.includes(d.id)} onChange={e => { 
