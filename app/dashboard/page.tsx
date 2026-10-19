@@ -6,7 +6,7 @@ import Link from "next/link";
 import { 
   Home, Layers, Send, MessageCircle, User, TrendingUp, CalendarClock, 
   Folder, FileText, Settings, ShieldAlert, ChevronRight, PenTool, Link as LinkIcon, 
-  CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn, Clock, Zap, HelpCircle, X 
+  CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn, LogOut, Clock, Zap, HelpCircle, X 
 } from "lucide-react";
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
@@ -103,7 +103,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {tab === "home" && <HomeTab stats={stats} campaignStats={campaignStats} folders={folders} accounts={accounts} loading={loading} setTab={setTab} />}
+      {tab === "home" && <HomeTab stats={stats} campaignStats={campaignStats} folders={folders} accounts={accounts} loading={loading} setTab={setTab} onRefresh={loadData} />}
       {tab === "library" && <LibraryTab setTab={setTab} accounts={accounts} onRefresh={loadData} />}
       {tab === "broadcast" && <BroadcastTab accounts={accounts} folders={folders} />}
       {tab === "chats" && <ChatsTab accounts={accounts} />}
@@ -133,18 +133,75 @@ export default function Dashboard() {
   );
 }
 
-function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab }: any) {
+function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onRefresh }: any) {
   const t = stats?.totals || {};
   const deleteAcc = async (id: string) => {
     if(!confirm("Are you sure you want to delete this account?")) return;
     try {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api/backend"}/accounts/${id}`, { method: 'DELETE' });
-      window.location.reload();
+      if(onRefresh) onRefresh();
     } catch (e) { alert("Failed to delete account"); }
   };
 
+  // Add Account States
+  const [showAddAcc, setShowAddAcc] = useState(false);
+  const [addPhone, setAddPhone] = useState("");
+  const [addOtp, setAddOtp] = useState("");
+  const [addStep, setAddStep] = useState<"phone" | "otp">("phone");
+  const [addSessionId, setAddSessionId] = useState("");
+  const [addLoading, setAddLoading] = useState(false);
+  const [addError, setAddError] = useState("");
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
+  const me = getLocal("session");
+
+  const handleSendOtp = async () => {
+    if (addPhone.length < 6) return setAddError("Enter a valid number");
+    setAddLoading(true); setAddError("");
+    try {
+      const fullPhone = addPhone.startsWith("+") ? addPhone : "+" + addPhone;
+      const res = await fetch(`${API_URL}/auth/send-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Telegram-Id": me?.id?.toString() || "" },
+        body: JSON.stringify({ phone: fullPhone, telegram_id: me?.id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Failed to send OTP");
+      setAddSessionId(data.session_id);
+      setAddStep("otp");
+    } catch (err: any) { setAddError(err.message); }
+    setAddLoading(false);
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!addOtp || addOtp.length < 3) return setAddError("Enter valid OTP");
+    setAddLoading(true); setAddError("");
+    try {
+      const res = await fetch(`${API_URL}/auth/verify-otp`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Telegram-Id": me?.id?.toString() || "" },
+        body: JSON.stringify({ session_id: addSessionId, code: addOtp })
+      });
+      const data = await res.json();
+      
+      if (data.needs_password) {
+         alert("2FA is enabled on this account. Please log in from the Login page to add this account.");
+         setAddLoading(false);
+         return;
+      }
+      
+      if (!res.ok) throw new Error(data.detail || "Invalid OTP");
+      
+      alert("Account connected successfully!");
+      setShowAddAcc(false);
+      setAddPhone(""); setAddOtp(""); setAddStep("phone");
+      if(onRefresh) onRefresh(); // Refresh Home data
+    } catch (err: any) { setAddError(err.message); }
+    setAddLoading(false);
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       <div className="grid grid-cols-2 gap-3">
         <div className="glass-card p-4">
           <div className="w-10 h-10 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)] mb-3"><TrendingUp size={20} /></div>
@@ -170,10 +227,16 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab }: a
 
       {/* Manage Accounts Section */}
       <div>
-        <h3 className="text-[11px] font-bold text-[var(--dim)] tracking-widest uppercase mb-3 ml-1">Connected Accounts</h3>
+        <div className="flex justify-between items-center mb-3 ml-1">
+          <h3 className="text-[11px] font-bold text-[var(--dim)] tracking-widest uppercase">Connected Accounts</h3>
+          <button onClick={() => setShowAddAcc(true)} className="bg-[var(--accent)] text-black px-3 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-[0_0_10px_rgba(28,212,90,0.3)]">
+            <Plus size={14} /> Add Account
+          </button>
+        </div>
+        
         <div className="space-y-3">
           {accounts.length === 0 ? (
-             <div className="glass-card p-4 text-center text-sm text-[var(--dim)]">No accounts connected yet. Go to Me tab to add.</div>
+             <div className="glass-card p-4 text-center text-sm text-[var(--dim)]">No accounts connected yet. Click "Add Account" above.</div>
           ) : (
             accounts.map((a: any) => (
               <div key={a.id} className="glass-card p-4 flex items-center gap-4">
@@ -204,6 +267,42 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab }: a
           </div>
         </div>
       </div>
+
+      {/* ADD ACCOUNT MODAL */}
+      {showAddAcc && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowAddAcc(false)}>
+          <div className="bg-[#111] border border-[#1cd45a]/50 rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-[var(--accent)]">Add Telegram Account</h3>
+              <button onClick={() => setShowAddAcc(false)} className="text-white/50 hover:text-white bg-white/5 p-1 rounded-full"><X size={20}/></button>
+            </div>
+            
+            {addError && <div className="bg-red-500/10 text-red-500 text-xs p-2 rounded-lg mb-3 text-center">{addError}</div>}
+
+            {addStep === "phone" ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-white/50 mb-1 block">Phone Number (with country code)</label>
+                  <input type="tel" placeholder="+8801712345678" value={addPhone} onChange={e => setAddPhone(e.target.value)} className="w-full bg-[#050505] border border-white/10 rounded-xl px-4 py-3 text-white outline-none focus:border-[var(--accent)]" />
+                </div>
+                <button onClick={handleSendOtp} disabled={addLoading} className="w-full bg-[var(--accent)] text-black font-bold py-3 rounded-xl flex justify-center">
+                  {addLoading ? <Loader2 size={20} className="animate-spin" /> : "Send OTP"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div>
+                  <label className="text-xs text-white/50 mb-1 block">Enter OTP Code</label>
+                  <input type="text" placeholder="12345" value={addOtp} onChange={e => setAddOtp(e.target.value)} className="w-full bg-[#050505] border border-white/10 rounded-xl px-4 py-3 text-white text-center text-xl tracking-[0.5em] outline-none focus:border-[var(--accent)]" maxLength={6} />
+                </div>
+                <button onClick={handleVerifyOtp} disabled={addLoading} className="w-full bg-[var(--accent)] text-black font-bold py-3 rounded-xl flex justify-center">
+                  {addLoading ? <Loader2 size={20} className="animate-spin" /> : "Verify & Add"}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -993,7 +1092,7 @@ function MeTab({ me }: any) {
       </div>
 
       <button onClick={() => { clearLocal("session"); router.push("/login"); }} className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4">
-        <LogIn size={20} /> Log out
+        <LogOut size={20} /> Log out Dashboard
       </button>
     </div>
   );
