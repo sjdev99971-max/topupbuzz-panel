@@ -6,7 +6,7 @@ import Link from "next/link";
 import { 
   Home, Layers, Send, MessageCircle, User, TrendingUp, CalendarClock, 
   Folder, FileText, Settings, ShieldAlert, ChevronRight, PenTool, Link as LinkIcon, 
-  CheckCircle2, Loader2, Plus, Download, Upload, Users 
+  CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn 
 } from "lucide-react";
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
