@@ -21,27 +21,51 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Auth & Core
+export const SUPPORT_USER = "@DEVELOPER_JAHID_BHAI";
+
+// Core & Auth
 export const getHealth = () => api.get("/health").then(r => r.data);
 export const getMe = () => api.get("/me").then(r => r.data);
 export const getPlans = () => api.get("/plans").then(r => r.data);
 export const getMyStats = () => api.get("/stats/me").then(r => r.data);
-export const getAccounts = () => api.get("/accounts").then(r => r.data);
-export const getCampaign = (id: string) => api.get(`/accounts/${id}/campaign`).then(r => r.data);
-export const deleteAccount = (id: string) => api.delete(`/accounts/${id}`).then(r => r.data);
+export const sendOtp = (phone: string) => api.post("/auth/send-otp", { phone }).then(r => r.data);
+export const verifyOtp = (session_id: string, code: string, password?: string) => api.post("/auth/verify-otp", { session_id, code, password }).then(r => r.data);
 export const telegramMiniAuth = (init_data: string) => api.post("/auth/telegram-mini", { init_data }).then(r => r.data);
-export const refreshDialogs = (id: string) => api.post(`/accounts/${id}/dialogs/refresh`).then(r => r.data);
 
-// Broadcast & Posts
+// Accounts & Campaigns
+export const getAccounts = () => api.get("/accounts").then(r => r.data);
+export const getAccount = (id: string) => api.get(`/accounts/${id}`).then(r => r.data);
+export const deleteAccount = (id: string) => api.delete(`/accounts/${id}`).then(r => r.data);
+export const refreshDialogs = (id: string) => api.post(`/accounts/${id}/dialogs/refresh`).then(r => r.data);
+export const getAccountStats = (id: string) => api.get(`/accounts/${id}/stats`).then(r => r.data);
+export const getCampaign = (id: string) => api.get(`/accounts/${id}/campaign`).then(r => r.data);
+export const saveCampaign = (id: string, payload: any) => api.post(`/accounts/${id}/campaign`, payload).then(r => r.data);
+export const startCampaign = (id: string) => api.post(`/accounts/${id}/campaign/start`).then(r => r.data);
+export const stopCampaign = (id: string) => api.post(`/accounts/${id}/campaign/stop`).then(r => r.data);
+export const pauseCampaign = (id: string) => api.post(`/accounts/${id}/campaign/pause`).then(r => r.data);
+export const resumeCampaign = (id: string) => api.post(`/accounts/${id}/campaign/resume`).then(r => r.data);
+export const scheduleCampaign = (id: string, scheduled_at: number) => api.post(`/accounts/${id}/campaign/schedule`, { scheduled_at }).then(r => r.data);
+export const unscheduleCampaign = (id: string) => api.post(`/accounts/${id}/campaign/unschedule`).then(r => r.data);
+export const retryFailed = (id: string) => api.post(`/accounts/${id}/retry-failed`).then(r => r.data);
+export const getLogs = (id: string) => api.get(`/accounts/${id}/logs`).then(r => r.data);
+export const getLogsCsv = (id: string) => `${API_URL}/accounts/${id}/logs.csv`;
+
+// Admin
+export const getAdminStats = () => api.get("/stats/admin").then(r => r.data);
+export const adminGetUsers = () => api.get("/admin/users").then(r => r.data);
+export const adminUpdatePlan = (payload: any) => api.post("/admin/plans", payload).then(r => r.data);
+export const adminSetUserPlan = (userId: number, plan: string) => api.post("/admin/set-user-plan", { user_id: userId, plan }).then(r => r.data);
+export const adminBroadcast = (text: string) => api.post("/admin/broadcast", { text }).then(r => r.data);
+
+// New Features (Broadcast, Chats, Folders)
 export const broadcastNow = (payload: any) => api.post("/broadcast-now", payload).then(r => r.data);
 export const getSavedPosts = () => api.get("/saved-posts").then(r => r.data);
 export const createSavedPost = (payload: any) => api.post("/saved-posts", payload).then(r => r.data);
-
-// Folders & Coins
 export const getFolders = () => api.get("/folders").then(r => r.data);
 export const createFolder = (name: string, groups: any[]) => api.post("/folders", { name, groups }).then(r => r.data);
 
-// LocalStorage & WebApp
+// Stealth & LocalStorage
+export const setStealth = (userId: number) => { if (typeof window !== "undefined") localStorage.setItem("stealth_id", String(userId)); };
 export const saveLocal = (k: string, v: any) => { if (typeof window !== "undefined") localStorage.setItem(k, JSON.stringify(v)); };
 export const getLocal = (k: string) => { if (typeof window === "undefined") return null; const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; };
 export const clearLocal = (k: string) => { if (typeof window !== "undefined") localStorage.removeItem(k); };
