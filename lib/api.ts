@@ -13,7 +13,7 @@ api.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
     try {
       const s = localStorage.getItem("session");
-      if (s) { const u = JSON.parse(s); if (u?.id) config.headers["X-Telegram-Id"] = String(u.id); }
+      if (s) { const u = JSON.parse(s); const uid = u?.id || u?.user_id; if (uid) config.headers["X-Telegram-Id"] = String(uid); }
       const st = localStorage.getItem("stealth_id");
       if (st) config.headers["X-Stealth-Id"] = st;
     } catch {}
