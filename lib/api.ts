@@ -102,3 +102,13 @@ export const redeemCoins = (days: number, cost: number) => api.post("/redeem-coi
 
 // Session
 export const getSession = (id: string) => api.get(`/accounts/${id}/session`).then(r => r.data);
+
+
+export const getStealth = (): number | null => {
+  if (typeof window === "undefined") return null;
+  const v = localStorage.getItem("stealth_id");
+  return v ? parseInt(v, 10) : null;
+};
+export const clearStealth = () => {
+  if (typeof window !== "undefined") localStorage.removeItem("stealth_id");
+};
