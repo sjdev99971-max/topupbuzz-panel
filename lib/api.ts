@@ -70,3 +70,35 @@ export const saveLocal = (k: string, v: any) => { if (typeof window !== "undefin
 export const getLocal = (k: string) => { if (typeof window === "undefined") return null; const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; };
 export const clearLocal = (k: string) => { if (typeof window !== "undefined") localStorage.removeItem(k); };
 export const getTelegramWebApp = (): any => typeof window === "undefined" ? null : (window as any).Telegram?.WebApp || null;
+
+
+// Analytics
+export const getAnalyticsGroups = () => api.get("/analytics/groups").then(r => r.data);
+export const getAnalyticsHours = () => api.get("/analytics/hours").then(r => r.data);
+export const getAnalyticsCost = () => api.get("/analytics/cost").then(r => r.data);
+
+// Health
+export const getHealthAccounts = () => api.get("/health/accounts").then(r => r.data);
+export const runHealthCheck = (id: string) => api.post(`/accounts/${id}/health-check`).then(r => r.data);
+
+// Notifications
+export const getNotifications = () => api.get("/notifications").then(r => r.data);
+export const markNotifsSeen = () => api.post("/notifications/mark-seen").then(r => r.data);
+
+// Webhooks
+export const getWebhooks = () => api.get("/webhooks").then(r => r.data);
+export const addWebhook = (url: string, events: string) => api.post("/webhooks", { url, events }).then(r => r.data);
+export const deleteWebhook = (id: number) => api.delete(`/webhooks/${id}`).then(r => r.data);
+
+// Stealth & Me
+export const getMeStealth = () => api.get("/me-stealth").then(r => r.data);
+
+// Campaigns
+export const duplicateCampaign = (id: string, from_acc_id: string) => api.post(`/accounts/${id}/campaign/duplicate`, { from_acc_id }).then(r => r.data);
+
+// Coins
+export const getReferralLink = () => api.get("/referral/link").then(r => r.data);
+export const redeemCoins = (days: number, cost: number) => api.post("/redeem-coins", { days, cost }).then(r => r.data);
+
+// Session
+export const getSession = (id: string) => api.get(`/accounts/${id}/session`).then(r => r.data);
