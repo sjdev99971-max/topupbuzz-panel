@@ -54,7 +54,7 @@ export const getLogsCsv = (id: string) => `${API_URL}/accounts/${id}/logs.csv`;
 export const getAdminStats = () => api.get("/stats/admin").then(r => r.data);
 export const adminGetUsers = () => api.get("/admin/users").then(r => r.data);
 export const adminUpdatePlan = (payload: any) => api.post("/admin/plans", payload).then(r => r.data);
-export const adminSetUserPlan = (userId: number, plan: string) => api.post("/admin/set-user-plan", { user_id: userId, plan }).then(r => r.data);
+export const adminSetUserPlan = (userId: number, plan: string, days?: number) => api.post("/admin/set-user-plan", { user_id: userId, plan, days }).then(r => r.data);
 export const adminBroadcast = (text: string) => api.post("/admin/broadcast", { text }).then(r => r.data);
 
 // New Features (Broadcast, Chats, Folders)
