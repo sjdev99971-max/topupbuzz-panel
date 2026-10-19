@@ -47,7 +47,7 @@ export const resumeCampaign = (id: string) => api.post(`/accounts/${id}/campaign
 export const scheduleCampaign = (id: string, scheduled_at: number) => api.post(`/accounts/${id}/campaign/schedule`, { scheduled_at }).then(r => r.data);
 export const unscheduleCampaign = (id: string) => api.post(`/accounts/${id}/campaign/unschedule`).then(r => r.data);
 export const retryFailed = (id: string) => api.post(`/accounts/${id}/retry-failed`).then(r => r.data);
-export const getLogs = (id: string) => api.get(`/accounts/${id}/logs`).then(r => r.data);
+export const getLogs = (id: string, limit: number = 100) => api.get(`/accounts/${id}/logs?limit=${limit}`).then(r => r.data);
 export const getLogsCsv = (id: string) => `${API_URL}/accounts/${id}/logs.csv`;
 
 // Admin
