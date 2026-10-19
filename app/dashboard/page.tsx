@@ -77,7 +77,13 @@ export default function Dashboard() {
     setLoading(false);
   }, []);
 
-  useEffect(() => { if (ready) loadData(); }, [ready, loadData]);
+  useEffect(() => { 
+    if (ready) {
+      loadData();
+      const interval = setInterval(loadData, 5000); // প্রতি ৫ সেকেন্ডে রিফ্রেশ
+      return () => clearInterval(interval);
+    }
+  }, [ready, loadData]);
 
   if (!ready) return <div className="min-h-screen flex items-center justify-center bg-[#050505] text-[var(--accent)]"><Loader2 className="animate-spin" size={32} /></div>;
 
@@ -129,6 +135,14 @@ export default function Dashboard() {
 
 function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab }: any) {
   const t = stats?.totals || {};
+  const deleteAcc = async (id: string) => {
+    if(!confirm("Are you sure you want to delete this account?")) return;
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api/backend"}/accounts/${id}`, { method: 'DELETE' });
+      window.location.reload();
+    } catch (e) { alert("Failed to delete account"); }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3">
@@ -154,6 +168,27 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab }: a
         </div>
       </div>
 
+      {/* Manage Accounts Section */}
+      <div>
+        <h3 className="text-[11px] font-bold text-[var(--dim)] tracking-widest uppercase mb-3 ml-1">Connected Accounts</h3>
+        <div className="space-y-3">
+          {accounts.length === 0 ? (
+             <div className="glass-card p-4 text-center text-sm text-[var(--dim)]">No accounts connected yet. Go to Me tab to add.</div>
+          ) : (
+            accounts.map((a: any) => (
+              <div key={a.id} className="glass-card p-4 flex items-center gap-4">
+                <div className="w-10 h-10 rounded-full bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><User size={18} /></div>
+                <div className="flex-1">
+                  <div className="text-white text-sm font-bold">{a.phone}</div>
+                  <div className="text-xs text-[var(--dim)] mt-0.5">Status: <span className={a.health === 'Safe' ? 'text-green-500' : 'text-red-500'}>{a.health || 'Unknown'}</span></div>
+                </div>
+                <button onClick={() => deleteAcc(a.id)} className="text-red-500/70 hover:text-red-500 p-2 bg-red-500/10 rounded-xl"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       <div>
         <h3 className="text-[11px] font-bold text-[var(--dim)] tracking-widest uppercase mb-3 ml-1">Quick Actions</h3>
         <div className="space-y-3">
@@ -172,7 +207,6 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab }: a
     </div>
   );
 }
-
 function LibraryTab({ setTab, accounts, onRefresh }: any) {
   const [folders, setFolders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
