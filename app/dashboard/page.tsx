@@ -638,7 +638,7 @@ function MeTab({ me }: any) {
         
         <div className="flex flex-col items-center justify-center text-center relative z-10">
           <div className="w-24 h-24 rounded-full border-4 border-[#0d1f13] overflow-hidden bg-black mb-3">
-            <img src={me?.photo_url || `https://ui-avatars.com/api/?name=${me?.first_name || "User"}&background=1cd45a&color=000`} alt="profile" className="w-full h-full object-cover" />
+            <img src={`https://apis.topup.buzz/avatar/${me?.user_id || 0}`} alt="profile" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.src = `https://ui-avatars.com/api/?name=${me?.first_name || "User"}&background=1cd45a&color=000`; }} />
           </div>
           <h2 className="text-xl font-bold text-black flex items-center gap-2">
             <span className="text-black/50">⋮</span> {me?.first_name || "JAHID"} <span className="font-mono text-black/70">&lt;/&gt;</span>
