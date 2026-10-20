@@ -465,24 +465,47 @@ function BroadcastTab({ accounts, folders }: any) {
 
   const handleBroadcastNow = async () => {
     if (!selectedAcc || !selectedFolder || !selectedTemplate) return alert("Select account, folder & template.");
-    const folderData = folders.find((f:any) => f.id.toString() === selectedFolder);
-    const templateData = savedPosts.find(p => p.id.toString() === selectedTemplate);
-    if (!folderData || !templateData) return alert("Invalid selection.");
     
-    const targets = JSON.parse(folderData.groups_json);
+    let targets = [];
+    try {
+      const folderData = folders.find((f:any) => f.id.toString() === selectedFolder);
+      if (!folderData) return alert("Folder not found.");
+      
+      let parsedGroups = folderData.groups_json;
+      if (typeof parsedGroups === 'string') {
+        parsedGroups = JSON.parse(parsedGroups);
+      }
+      targets = Array.isArray(parsedGroups) ? parsedGroups : [];
+    } catch (e) {
+      return alert("❌ Error parsing folder data.");
+    }
+
+    const templateData = savedPosts.find(p => p.id.toString() === selectedTemplate);
+    if (!templateData) return alert("Template not found.");
+    if (targets.length === 0) return alert("❌ No groups found in this folder.");
 
     setSending(true); setResult(null);
     try {
-      const res = await broadcastNow({ 
-        acc_id: selectedAcc, 
-        targets: targets.map((t:any) => t.id), 
-        type: templateData.content.startsWith("http") ? "link" : "text", 
-        content: templateData.content 
+      const res = await broadcastNow({
+        acc_id: selectedAcc,
+        targets: targets.map((t:any) => t.id || t),
+        type: templateData.content.startsWith("http") ? "link" : "text",
+        content: templateData.content
       });
-      setResult({ success: res.success, failed: res.failed });
-    } catch (e: any) { alert("Broadcast failed."); }
-    setSending(false);
-  };
+      
+      if (res && res.ok) {
+        alert("✅ Broadcast started successfully in background!");
+        setResult({ success: 1, failed: 0 });
+      } else {
+        throw new Error(res?.message || "Failed to start broadcast");
+      }
+    } catch (e: any) { 
+      const errMsg = e.response?.data?.detail || e.message || "Unknown error";
+      alert(`❌ Broadcast failed: ${errMsg}`); 
+    } finally {
+      setSending(false); 
+    }
+  };;
 
   if (mode === "list") {
     return (
