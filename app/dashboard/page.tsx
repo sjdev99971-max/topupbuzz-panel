@@ -590,12 +590,25 @@ function BroadcastTab({ accounts, folders }: any) {
 
     setSending(true); setResult(null);
     try {
-      const res = await broadcastNow({
-        acc_id: selectedAcc,
-        targets: targets.map((t:any) => t.id || t),
-        type: templateData.content.startsWith("http") ? "link" : "text",
-        content: templateData.content
-      });
+      let res;
+      // চেক করা হচ্ছে টেমপ্লেটটি চ্যানেল আইডি কিনা
+      if (templateData.type === "channel") {
+        // চ্যানেল আইডি হলে লাস্ট পোস্ট ব্রডকাস্ট এপিআই কল হবে
+        res = await broadcastLastPost({
+          acc_id: selectedAcc,
+          targets: targets.map((t:any) => t.id || t),
+          channel_id: templateData.content,
+          mode: "copy" // ডিফল্ট কপি মোড
+        });
+      } else {
+        // নরমাল টেক্সট বা লিংক হলে পুরনো এপিআই কল হবে
+        res = await broadcastNow({
+          acc_id: selectedAcc,
+          targets: targets.map((t:any) => t.id || t),
+          type: templateData.content.startsWith("http") ? "link" : "text",
+          content: templateData.content
+        });
+      }
       
       if (res && res.ok) {
         alert("✅ Broadcast started successfully in background!");
