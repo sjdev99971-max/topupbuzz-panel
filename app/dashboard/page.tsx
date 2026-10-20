@@ -44,12 +44,24 @@ export default function Dashboard() {
       
       let session = getLocal("session");
       
-      // যদি সেশন না থাকে অথবা সেশন ভাঙা থাকে (id না থাকে), তবে সরাসরি লগইন পেজে পাঠাবে
+      // ১. যদি সেশন না থাকে, তবে টেলিগ্রাম মিনি-অ্যাপ থেকে অটো-লগইন করার চেষ্টা করবে
       if (!session || !session.id) {
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
+        const tg = getTelegramWebApp();
+        if (tg?.initData) {
+          try { 
+            const res = await telegramMiniAuth(tg.initData); 
+            saveLocal("session", res.user); 
+            session = res.user; 
+          }
+          catch { 
+            if (typeof window !== "undefined") window.location.href = "/login"; 
+            return; 
+          }
+        } else { 
+          // যদি টেলিগ্রামের ভেতর না থাকে (সাধারণ ব্রাউজার), তবে লগইন পেজে যাবে
+          if (typeof window !== "undefined") window.location.href = "/login"; 
+          return; 
         }
-        return;
       }
       
       setMe(session); 
