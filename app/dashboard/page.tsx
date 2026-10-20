@@ -64,7 +64,12 @@ export default function Dashboard() {
         getFolders().catch(() => []), getMe().catch(() => null)
       ]);
       
-      if (m) { setMe(m); saveLocal("session", m); }
+      if (m) { 
+        setMe(m); 
+        // Stealth মোডে থাকলে অ্যাডমিনের মেইন সেশন চেঞ্জ করা যাবে না
+        const isStealth = typeof window !== "undefined" && localStorage.getItem("stealth_id");
+        if (!isStealth) saveLocal("session", m); 
+      }
       setAccounts(accs); setStats(sts); setFolders(flds);
 
       let active = 0, groups = 0;
