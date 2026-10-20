@@ -254,6 +254,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedAcc, setSelectedAcc] = useState("");
   const [channelId, setChannelId] = useState("");
+  const [savedChannels, setSavedChannels] = useState<any[]>([]);
   const [channelMode, setChannelMode] = useState("copy");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
@@ -497,6 +498,7 @@ function BroadcastTab({ accounts, folders }: any) {
 
   const [selectedAcc, setSelectedAcc] = useState("");
   const [channelId, setChannelId] = useState("");
+  const [savedChannels, setSavedChannels] = useState<any[]>([]);
   const [channelMode, setChannelMode] = useState("copy");
   const [selectedFolder, setSelectedFolder] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
@@ -507,7 +509,11 @@ function BroadcastTab({ accounts, folders }: any) {
 
   const loadMyPosts = async () => {
     setLoadingPosts(true);
-    try { const posts = await getSavedPosts(); setSavedPosts(posts); } catch {}
+    try { 
+      const posts = await getSavedPosts(); 
+      setSavedPosts(posts); 
+      setSavedChannels((posts || []).filter((p: any) => p.type === 'channel'));
+    } catch {}
     setLoadingPosts(false);
   };
 
@@ -751,9 +757,19 @@ function BroadcastTab({ accounts, folders }: any) {
         
         <div className="glass-card p-4 space-y-4">
           <div>
-            <label className="text-xs text-[var(--dim)] mb-1 block">Channel Chat ID</label>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Select Saved Channel ID</label>
+            <select 
+              className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white mb-2" 
+              value={channelId} 
+              onChange={e => setChannelId(e.target.value)}
+            >
+              <option value="">-- Choose Saved Channel --</option>
+              {savedChannels.map((c: any) => (
+                <option key={c.id} value={c.content}>{c.title} ({c.content})</option>
+              ))}
+            </select>
+            <div className="text-center text-xs text-white/40 mb-2">অথবা ম্যানুয়ালি দিন</div>
             <input type="text" placeholder="-1001234567890" value={channelId} onChange={e => setChannelId(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" />
-            <p className="text-[10px] text-white/40 mt-1">চ্যানেলের আইডি (যেমন: -100...) দিন</p>
           </div>
           
           <div>
@@ -870,6 +886,7 @@ if (mode === "send_now") {
 function ChatsTab({ accounts }: any) {
   const [selectedAcc, setSelectedAcc] = useState("");
   const [channelId, setChannelId] = useState("");
+  const [savedChannels, setSavedChannels] = useState<any[]>([]);
   const [channelMode, setChannelMode] = useState("copy");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
