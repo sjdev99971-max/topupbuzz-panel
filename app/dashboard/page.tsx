@@ -41,19 +41,6 @@ export default function Dashboard() {
     (async () => {
       let session = getLocal("session");
       
-      // ১. URL থেকে tg_id চেক করা (বট থেকে পাঠানো আইডি)
-      const urlParams = new URLSearchParams(window.location.search);
-      const tgIdFromUrl = urlParams.get('tg_id');
-      
-      if (tgIdFromUrl) {
-        // URL-এ আইডি থাকলে সরাসরি সেশন তৈরি করে লগইন করানো
-        session = { id: parseInt(tgIdFromUrl) };
-        saveLocal("session", session);
-        // URL থেকে tg_id মুছে ফেলা, যাতে রিফ্রেশে সমস্যা না হয়
-        window.history.replaceState({}, document.title, window.location.pathname);
-      }
-      
-      // ২. যদি সেশন না থাকে, তবে টেলিগ্রাম মিনি-অ্যাপের initData চেক করা
       if (!session || !session.id) {
         const tg = getTelegramWebApp();
         if (tg && tg.initData) {
@@ -62,17 +49,22 @@ export default function Dashboard() {
             if (res && res.user) {
               saveLocal("session", res.user);
               session = res.user;
+            } else {
+              throw new Error("Invalid auth response");
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error("Telegram Auto-Login Failed:", err);
+            const errMsg = err.response?.data?.detail || err.message || "Auth failed";
+            // এররটি স্ক্রিনে দেখানো, যাতে বোঝা যায় কোথায় সমস্যা
+            alert("Auto-Login Failed: " + errMsg);
+            if (typeof window !== "undefined") window.location.href = "/login"; 
+            return;
           }
+        } else {
+          // টেলিগ্রামের বাইরে ওপেন করলে
+          if (typeof window !== "undefined") window.location.href = "/login"; 
+          return;
         }
-      }
-      
-      // ৩. যদি এখনো সেশন না পাওয়া যায়, তবে লগইন পেজে পাঠানো
-      if (!session || !session.id) {
-        if (typeof window !== "undefined") window.location.href = "/login"; 
-        return;
       }
       
       setMe(session); 
