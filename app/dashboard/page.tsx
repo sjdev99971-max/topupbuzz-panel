@@ -103,7 +103,12 @@ export default function Dashboard() {
       {stealthId && (
         <div className="bg-red-600 text-white p-2 text-center text-sm font-bold flex justify-between items-center px-4 sticky top-0 z-50 rounded-xl mb-4 shadow-lg">
           <span>🕵️ Viewing as User ID: {stealthId}</span>
-          <button onClick={() => { localStorage.removeItem("stealth_id"); window.location.reload(); }} className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-200">Exit Stealth</button>
+          <button onClick={() => { 
+            if (typeof window !== "undefined") {
+              localStorage.removeItem("stealth_id"); 
+              window.location.href = "/dashboard"; 
+            }
+          }} className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-200">Exit Stealth</button>
         </div>
       )}
       <div className="flex items-center justify-between mb-6">
