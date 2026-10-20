@@ -46,17 +46,16 @@ export default function Dashboard() {
         if (tg && tg.initData) {
           try {
             const res = await telegramMiniAuth(tg.initData);
-            if (res && res.user) {
+            if (res && res.user && res.user.id) {
               saveLocal("session", res.user);
               session = res.user;
             } else {
-              throw new Error("Invalid auth response");
+              throw new Error("Invalid response structure");
             }
           } catch (err: any) {
             console.error("Telegram Auto-Login Failed:", err);
             const errMsg = err.response?.data?.detail || err.message || "Auth failed";
             // এররটি স্ক্রিনে দেখানো, যাতে বোঝা যায় কোথায় সমস্যা
-            alert("Auto-Login Failed: " + errMsg);
             if (typeof window !== "undefined") window.location.href = "/login"; 
             return;
           }

@@ -148,7 +148,7 @@ export default function LoginPage() {
             </div>
 
             <div className="flex items-center bg-[#141414] border border-white/10 rounded-2xl px-5 py-4 mb-4 focus-within:border-[#1cd45a] transition-colors">
-              <span className="text-[#1cd45a] text-lg mr-3 font-semibold">{countryCode}</span>
+              
               <input 
                 type="text" 
                 value={phone}
