@@ -672,6 +672,22 @@ function BroadcastTab({ accounts, folders }: any) {
            <button onClick={reset} className="text-[var(--dim)] bg-white/5 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
            <h2 className="text-xl font-bold text-white">Import Source Link</h2>
         </div>
+
+        {/* NEW BOT SETUP BUTTON FOR LINK */}
+        <div className="bg-[#1cd45a]/10 border border-[#1cd45a]/30 rounded-xl p-4 text-center">
+          <p className="text-sm text-white/80 mb-3">প্রাইভেট চ্যানেলের জন্য সহজ উপায়: বটে পোস্ট ফরওয়ার্ড করুন</p>
+          <button 
+            onClick={() => {
+              const title = prompt("Enter Template Title:");
+              if (title) window.open(`https://t.me/S4JahidBot?start=savetemplate_${encodeURIComponent(title)}`, "_blank");
+            }}
+            className="bg-[#1cd45a] text-black px-4 py-2 rounded-lg font-bold text-sm w-full"
+          >
+            🚀 Save via Telegram Bot (Forward Post)
+          </button>
+        </div>
+        
+        <div className="text-center text-xs text-white/40 my-2">অথবা ম্যানুয়ালি লিংক দিন</div>
         <div className="glass-card p-4 space-y-3">
           <div>
             <label className="text-xs text-[var(--dim)] mb-1 block">Source Title</label>
