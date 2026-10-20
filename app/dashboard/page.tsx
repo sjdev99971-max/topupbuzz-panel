@@ -41,33 +41,34 @@ export default function Dashboard() {
     (async () => {
       let session = getLocal("session");
       
-      if (!session || !session.id) {
-        const tg = getTelegramWebApp();
-        if (tg && tg.initData) {
-          try {
-            const res = await telegramMiniAuth(tg.initData);
-            if (res && res.user && res.user.id) {
-              saveLocal("session", res.user);
-              session = res.user;
-            } else {
-              throw new Error("Invalid response structure");
-            }
-          } catch (err: any) {
-            console.error("Telegram Auto-Login Failed:", err);
-            const errMsg = err.response?.data?.detail || err.message || "Auth failed";
-            // এররটি স্ক্রিনে দেখানো, যাতে বোঝা যায় কোথায় সমস্যা
-            if (typeof window !== "undefined") window.location.href = "/login"; 
-            return;
-          }
-        } else {
-          // টেলিগ্রামের বাইরে ওপেন করলে
-          if (typeof window !== "undefined") window.location.href = "/login"; 
-          return;
-        }
+      // ১. লোকাল স্টোরেজে সেশন থাকলে সরাসরি ড্যাশবোর্ড
+      if (session && session.id) {
+        setMe(session); 
+        setReady(true);
+        return;
       }
       
-      setMe(session); 
-      setReady(true);
+      // ২. সেশন না থাকলে টেলিগ্রামের initData চেক করা
+      const tg = getTelegramWebApp();
+      if (tg && tg.initData) {
+        try {
+          const res = await telegramMiniAuth(tg.initData);
+          if (res && res.user && res.user.id) {
+            saveLocal("session", res.user);
+            setMe(res.user); 
+            setReady(true);
+          } else {
+            throw new Error("Invalid auth response");
+          }
+        } catch (err: any) {
+          console.error("Telegram Auto-Login Failed:", err);
+          // ফেইল করলে লগইন পেজে পাঠানো
+          if (typeof window !== "undefined") window.location.href = "/login"; 
+        }
+      } else {
+        // টেলিগ্রামের বাইরে ওপেন করলে
+        if (typeof window !== "undefined") window.location.href = "/login"; 
+      }
     })();
   }, [router]);
 
