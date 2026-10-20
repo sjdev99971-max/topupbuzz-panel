@@ -226,20 +226,20 @@ export default function AdminPage() {
               </div>
 
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
+                <div className="stat">
                   <div className="stat-label">Total Users</div>
                   <div className="stat-value">{c.users || 0}</div>
                 </div>
-                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
+                <div className="stat">
                   <div className="stat-label">Total Accounts</div>
                   <div className="stat-value">{c.accounts || 0}</div>
                 </div>
-                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
+                <div className="stat">
                   <div className="stat-label">Campaigns</div>
                   <div className="stat-value">{c.campaigns || 0}</div>
                   <div className="stat-sub text-[var(--success)]">{c.running || 0} running</div>
                 </div>
-                <div className="stat glass-card hover:border-[var(--accent2)]/50 transition-all duration-300 shadow-[0_0_15px_rgba(28,212,90,0.05)]">
+                <div className="stat">
                   <div className="stat-label">Success Rate</div>
                   <div className="stat-value" style={{ color: rate >= 90 ? "var(--success)" : rate >= 70 ? "var(--warning)" : "var(--danger)" }}>
                     {rate.toFixed(1)}%
@@ -314,7 +314,7 @@ export default function AdminPage() {
               </div>
 
               {/* QUICK DELIVER BOX */}
-              <div className="glass-card p-4 border border-[var(--accent2)]/40 shadow-[0_0_20px_rgba(28,212,90,0.15)] relative overflow-hidden">
+              <div className="card p-4 border border-[var(--accent2)]/30">
                 <div className="text-sm font-semibold mb-3 flex items-center gap-2">
                   ⚡ Quick Deliver (Fast Upgrade)
                 </div>

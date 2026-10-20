@@ -164,3 +164,31 @@ body {
   -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6), 0 0 15px rgba(28, 212, 90, 0.1);
 }
+
+
+/* Admin Panel Dedicated Styles (Protects from user side changes) */
+.admin-mode .card {
+  background: var(--surface2) !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: none !important;
+  border-radius: 0.75rem !important;
+}
+.admin-mode .stat {
+  background: var(--surface2) !important;
+  border: 1px solid var(--border) !important;
+  padding: 1rem !important;
+  border-radius: 0.75rem !important;
+}
+.admin-mode .nav-item {
+  padding: 0.75rem 1rem !important;
+  border-radius: 0.5rem !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s;
+}
+.admin-mode .nav-item.active {
+  background: var(--accent2) !important;
+  color: white !important;
+}
