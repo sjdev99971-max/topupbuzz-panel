@@ -143,3 +143,5 @@ export const updateFolder = async (id: number, name: string, groups: any[]) => a
 export const updateSettings = async (settings: any) => await api.post('/user/settings', settings).then(r => r.data);
 
 export const adminGetAllAccounts = () => api.get("/admin/all-accounts").then(r => r.data);
+
+export const deleteSavedPost = (id: number) => api.delete(`/saved-posts/${id}`).then(r => r.data);

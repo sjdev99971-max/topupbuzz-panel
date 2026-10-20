@@ -11,7 +11,7 @@ import {
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
   getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, getPlans, 
-  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder, updateSettings, startCampaign, stopCampaign 
+  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder, updateSettings, startCampaign, stopCampaign, deleteSavedPost 
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
@@ -529,6 +529,15 @@ function BroadcastTab({ accounts, folders }: any) {
     }
   };
 
+
+  const handleDeletePost = async (id: number) => {
+    if(!confirm("Are you sure you want to delete this template?")) return;
+    try {
+      await deleteSavedPost(id);
+      loadMyPosts(); // রিফ্রেশ
+    } catch(e) { alert("Failed to delete template"); }
+  };
+
   const handleSaveTemplate = async (type: "text" | "link") => {
     if (!title || !content) return alert("Enter title and content/link.");
     if (type === "link" && !content.includes("t.me/")) {
@@ -677,8 +686,13 @@ function BroadcastTab({ accounts, folders }: any) {
         {loadingPosts ? <div className="text-center text-[var(--accent)] mt-10"><Loader2 className="animate-spin mx-auto" size={32} /></div> : 
          savedPosts.length === 0 ? <div className="text-center text-[var(--dim)] py-10 glass-card">No templates saved yet.</div> :
          savedPosts.map((p: any) => (
-           <div key={p.id} className="glass-card p-4">
-             <div className="text-white font-bold text-sm mb-1">{p.title}</div>
+           <div key={p.id} className="glass-card p-4 relative">
+             <div className="flex justify-between items-start mb-1">
+               <div className="text-white font-bold text-sm pr-8">{p.title}</div>
+               <button onClick={() => handleDeletePost(p.id)} className="absolute top-3 right-3 text-red-500/70 hover:text-red-500 bg-red-500/10 p-1.5 rounded-lg transition-colors">
+                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+               </button>
+             </div>
              <div className="text-xs text-[var(--dim)] bg-black/30 p-2 rounded-lg mt-2 line-clamp-3">{p.content}</div>
            </div>
          ))
