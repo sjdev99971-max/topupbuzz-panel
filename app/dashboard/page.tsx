@@ -11,7 +11,7 @@ import {
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
   getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, getPlans, 
-  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder 
+  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder, updateSettings 
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
@@ -424,6 +424,9 @@ function BroadcastTab({ accounts, folders }: any) {
 
   const handleSaveTemplate = async (type: "text" | "link") => {
     if (!title || !content) return alert("Enter title and content/link.");
+    if (type === "link" && !content.includes("t.me/")) {
+      return alert("❌ Invalid Link! Please enter a valid Telegram link (e.g., https://t.me/channel/123)");
+    }
     setSaving(true);
     try {
       await createSavedPost({ title, content, type });
@@ -768,25 +771,17 @@ function MeTab({ me }: any) {
 
     setSavingSettings(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "/api/backend"}/user/settings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Telegram-Id": me?.id?.toString() || "" },
-        body: JSON.stringify({ 
-          active_start: activeStart,
-          active_end: activeEnd,
-          forward_mode: forwardMode,
-          batch_size: batchSize,
-          delay_minutes: delayMinutes,
-          max_retries: maxRetries,
-          notifications: notifications
-        })
+      await updateSettings({ 
+        active_start: activeStart,
+        active_end: activeEnd,
+        forward_mode: forwardMode,
+        batch_size: batchSize,
+        delay_minutes: delayMinutes,
+        max_retries: maxRetries,
+        notifications: notifications
       });
-      if(res.ok) {
-        alert("Settings saved successfully!");
-        setShowSettings(false);
-      } else {
-        alert("Failed to save settings on server.");
-      }
+      alert("Settings saved successfully!");
+      setShowSettings(false);
     } catch (e) {
       alert("Error saving settings!");
     }

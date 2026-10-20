@@ -139,3 +139,5 @@ export const downloadFolderFile = async (id: number) => {
 export const adminDemoteUser = async (uid: number) => await api.post('/admin/demote-user', { user_id: uid }).then(r => r.data);
 
 export const updateFolder = async (id: number, name: string, groups: any[]) => await api.put(`/folders/${id}`, { name, groups }).then(r => r.data);
+
+export const updateSettings = async (settings: any) => await api.post('/user/settings', settings).then(r => r.data);
