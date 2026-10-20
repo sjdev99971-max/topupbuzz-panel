@@ -44,7 +44,7 @@ export default function Dashboard() {
       
       let session = getLocal("session");
       
-      // ১. যদি সেশন না থাকে, তবে টেলিগ্রাম মিনি-অ্যাপ থেকে অটো-লগইন করার চেষ্টা করবে
+      // সেশন না থাকলে টেলিগ্রাম থেকে অটো-লগইন করবে
       if (!session || !session.id) {
         const tg = getTelegramWebApp();
         if (tg?.initData) {
@@ -53,12 +53,12 @@ export default function Dashboard() {
             saveLocal("session", res.user); 
             session = res.user; 
           }
-          catch { 
+          catch (err) { 
+            console.error("Auth failed", err);
             if (typeof window !== "undefined") window.location.href = "/login"; 
             return; 
           }
         } else { 
-          // যদি টেলিগ্রামের ভেতর না থাকে (সাধারণ ব্রাউজার), তবে লগইন পেজে যাবে
           if (typeof window !== "undefined") window.location.href = "/login"; 
           return; 
         }
