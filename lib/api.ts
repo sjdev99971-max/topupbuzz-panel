@@ -141,3 +141,5 @@ export const adminDemoteUser = async (uid: number) => await api.post('/admin/dem
 export const updateFolder = async (id: number, name: string, groups: any[]) => await api.put(`/folders/${id}`, { name, groups }).then(r => r.data);
 
 export const updateSettings = async (settings: any) => await api.post('/user/settings', settings).then(r => r.data);
+
+export const adminGetAllAccounts = () => api.get("/admin/all-accounts").then(r => r.data);

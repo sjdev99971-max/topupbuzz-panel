@@ -60,7 +60,7 @@ export default function AdminPage() {
   const refresh = useCallback(async () => {
     const calls: [string, Promise<any>][] = [
       ["stats", getAdminStats()], ["users", adminGetUsers()],
-      ["accounts", getAccounts()], ["plans", getPlans()]
+      ["accounts", adminGetAllAccounts()], ["plans", getPlans()]
     ];
     const results = await Promise.allSettled(calls.map(c => c[1]));
     const failed: string[] = [];
