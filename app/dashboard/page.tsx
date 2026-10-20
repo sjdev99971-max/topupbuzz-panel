@@ -39,38 +39,35 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      // ১. লোকাল স্টোরেজ থেকে সেশন চেক করা
       let session = getLocal("session");
+      const tg = getTelegramWebApp();
       
-      // ২. যদি সেশন না থাকে, তবে টেলিগ্রাম থেকে জোর করে অটো-লগইন করা
+      // ১. যদি সেশন না থাকে, তবে টেলিগ্রাম থেকে অটো-লগইন করার চেষ্টা করবে
       if (!session || !session.id) {
-        const tg = getTelegramWebApp();
-        
-        // টেলিগ্রাম ওয়েব অ্যাপের initData চেক
         if (tg && tg.initData) {
           try {
-            // ব্যাকএন্ডে টেলিগ্রাম অথেনটিকেশন পাঠানো
             const res = await telegramMiniAuth(tg.initData);
             if (res && res.user) {
               saveLocal("session", res.user);
               session = res.user;
-            } else {
-              throw new Error("Invalid auth response");
             }
           } catch (err) {
             console.error("Telegram Auto-Login Failed:", err);
-            // ব্যাকএন্ড ফেইল করলে লগইন পেজে পাঠানো
-            if (typeof window !== "undefined") window.location.href = "/login"; 
-            return;
           }
-        } else {
-          // টেলিগ্রামের বাইরে (সাধারণ ব্রাউজারে) ওপেন করলে লগইন পেজে যাবে
-          if (typeof window !== "undefined") window.location.href = "/login"; 
-          return;
         }
       }
       
-      // ৩. সেশন পাওয়া গেলে ড্যাশবোর্ড রেডি করা
+      // ২. যদি এখনো সেশন না পাওয়া যায় (এবং টেলিগ্রামের ভেতরে না থাকে), তবে লগইনে পাঠাবে
+      if (!session || !session.id) {
+        if (!tg || !tg.initData) {
+           if (typeof window !== "undefined") window.location.href = "/login"; 
+           return;
+        }
+        // টেলিগ্রামে আছে কিন্তু লগইন ফেইল করেছে, তবুও ড্যাশবোর্ড লোড হতে দেবে (এরর দেখাবে)
+        setReady(true);
+        return;
+      }
+      
       setMe(session); 
       setReady(true);
     })();
