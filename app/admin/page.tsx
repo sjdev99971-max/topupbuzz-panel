@@ -10,7 +10,7 @@ import { toast } from "@/components/Toast";
 import {
   getMe, getLocal, clearLocal, getTelegramWebApp, telegramMiniAuth,
   getAdminStats, adminGetUsers, adminUpdatePlan, adminSetUserPlan,
-  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER
+  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser
 } from "@/lib/api";
 
 type Tab = "stats" | "users" | "accounts" | "broadcast" | "pricing";
