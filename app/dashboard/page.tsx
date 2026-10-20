@@ -1046,7 +1046,7 @@ function MeTab({ me }: any) {
       >
         <User size={20} /> Add New Account
       </button>
-      <button onClick={() => { clearLocal("session"); router.push("/login"); }} className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4">
+      <button onClick={() => { localStorage.clear(); window.location.href = "/login?logout=true"; }} className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-4 rounded-xl font-bold text-base flex justify-center items-center gap-2 mt-4">
         <LogOut size={20} /> Log out Dashboard
       </button>
     </div>
