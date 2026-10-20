@@ -40,10 +40,22 @@ export default function Dashboard() {
   useEffect(() => {
     (async () => {
       let session = getLocal("session");
-      const tg = getTelegramWebApp();
       
-      // ১. যদি সেশন না থাকে, তবে টেলিগ্রাম থেকে অটো-লগইন করার চেষ্টা করবে
+      // ১. URL থেকে tg_id চেক করা (বট থেকে পাঠানো আইডি)
+      const urlParams = new URLSearchParams(window.location.search);
+      const tgIdFromUrl = urlParams.get('tg_id');
+      
+      if (tgIdFromUrl) {
+        // URL-এ আইডি থাকলে সরাসরি সেশন তৈরি করে লগইন করানো
+        session = { id: parseInt(tgIdFromUrl) };
+        saveLocal("session", session);
+        // URL থেকে tg_id মুছে ফেলা, যাতে রিফ্রেশে সমস্যা না হয়
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      
+      // ২. যদি সেশন না থাকে, তবে টেলিগ্রাম মিনি-অ্যাপের initData চেক করা
       if (!session || !session.id) {
+        const tg = getTelegramWebApp();
         if (tg && tg.initData) {
           try {
             const res = await telegramMiniAuth(tg.initData);
@@ -57,14 +69,9 @@ export default function Dashboard() {
         }
       }
       
-      // ২. যদি এখনো সেশন না পাওয়া যায় (এবং টেলিগ্রামের ভেতরে না থাকে), তবে লগইনে পাঠাবে
+      // ৩. যদি এখনো সেশন না পাওয়া যায়, তবে লগইন পেজে পাঠানো
       if (!session || !session.id) {
-        if (!tg || !tg.initData) {
-           if (typeof window !== "undefined") window.location.href = "/login"; 
-           return;
-        }
-        // টেলিগ্রামে আছে কিন্তু লগইন ফেইল করেছে, তবুও ড্যাশবোর্ড লোড হতে দেবে (এরর দেখাবে)
-        setReady(true);
+        if (typeof window !== "undefined") window.location.href = "/login"; 
         return;
       }
       
