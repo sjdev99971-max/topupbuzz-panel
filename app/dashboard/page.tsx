@@ -253,6 +253,8 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedAcc, setSelectedAcc] = useState("");
+  const [channelId, setChannelId] = useState("");
+  const [channelMode, setChannelMode] = useState("copy");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [folderName, setFolderName] = useState("");
@@ -494,6 +496,8 @@ function BroadcastTab({ accounts, folders }: any) {
   const [loadingLogs, setLoadingLogs] = useState(false);
 
   const [selectedAcc, setSelectedAcc] = useState("");
+  const [channelId, setChannelId] = useState("");
+  const [channelMode, setChannelMode] = useState("copy");
   const [selectedFolder, setSelectedFolder] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
   const [sending, setSending] = useState(false);
@@ -736,7 +740,78 @@ function BroadcastTab({ accounts, folders }: any) {
       </div>
     );
   }
-  if (mode === "send_now") {
+  
+  if (mode === "channel_id") {
+    return (
+      <div className="space-y-4 pb-10">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={reset} className="text-[var(--dim)] bg-white/5 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Channel Last Post</h2>
+        </div>
+        
+        <div className="glass-card p-4 space-y-4">
+          <div>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Channel Chat ID</label>
+            <input type="text" placeholder="-1001234567890" value={channelId} onChange={e => setChannelId(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" />
+            <p className="text-[10px] text-white/40 mt-1">চ্যানেলের আইডি (যেমন: -100...) দিন</p>
+          </div>
+          
+          <div>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Select Account</label>
+            <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => setSelectedAcc(e.target.value)}>
+              <option value="">-- Choose Account --</option>
+              {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+            </select>
+          </div>
+          
+          <div>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Select Target Folder</label>
+            <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedFolder} onChange={e => setSelectedFolder(e.target.value)}>
+              <option value="">-- Choose Folder --</option>
+              {folders.map((f: any) => <option key={f.id} value={f.id}>{f.name}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Mode</label>
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={() => setChannelMode("copy")} className={`py-2 rounded-xl text-sm font-bold border ${channelMode === "copy" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Copy</button>
+              <button onClick={() => setChannelMode("forward")} className={`py-2 rounded-xl text-sm font-bold border ${channelMode === "forward" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Forward</button>
+            </div>
+          </div>
+        </div>
+
+        <button 
+          onClick={async () => {
+            if(!selectedAcc || !selectedFolder || !channelId) return alert("Select account, folder & enter channel ID.");
+            const folderData = folders.find((f:any) => f.id.toString() === selectedFolder);
+            let targets = [];
+            try { targets = typeof folderData.groups_json === 'string' ? JSON.parse(folderData.groups_json) : folderData.groups_json; } catch(e) { return alert("Error parsing folder."); }
+            if(targets.length === 0) return alert("No groups in this folder.");
+            
+            setSending(true);
+            try {
+              const res = await broadcastLastPost({
+                acc_id: selectedAcc,
+                channel_id: channelId,
+                targets: targets.map((t:any) => t.id || t),
+                mode: channelMode
+              });
+              alert("🚀 Broadcast started successfully!");
+              reset();
+            } catch(e:any) { alert("❌ Failed: " + (e.response?.data?.detail || e.message)); }
+            finally { setSending(false); }
+          }}
+          disabled={sending}
+          className="w-full bg-purple-500 text-white py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2"
+        >
+          {sending ? <><Loader2 size={20} className="animate-spin" /> Sending...</> : "Start Broadcast"}
+        </button>
+      </div>
+    );
+  }
+
+if (mode === "send_now") {
     return (
       <div className="space-y-4 pb-10">
         <div className="flex items-center gap-3 mb-4">
@@ -794,6 +869,8 @@ function BroadcastTab({ accounts, folders }: any) {
 
 function ChatsTab({ accounts }: any) {
   const [selectedAcc, setSelectedAcc] = useState("");
+  const [channelId, setChannelId] = useState("");
+  const [channelMode, setChannelMode] = useState("copy");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
