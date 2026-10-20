@@ -259,7 +259,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => { 
-    getFolders().then(f => { setFolders(f); setLoading(false); }).catch(() => setLoading(false)); 
+    getFolders().then(f => { setFolders(Array.isArray(f) ? f : []); setLoading(false); }).catch(() => setLoading(false)); 
   }, []);
 
   const loadGroups = async (accId: string) => {
@@ -307,6 +307,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
     reader.onload = async (event: any) => {
       try {
         const data = JSON.parse(event.target.result);
+        if (!data || !data.name || !Array.isArray(data.groups)) throw new Error('Invalid format');
         if (data.name && data.groups) {
            await createFolder(data.name, data.groups);
            if (accounts.length > 0) await joinMissingGroups(accounts[0].id, data.groups);
@@ -378,13 +379,20 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
       <h3 className="text-sm font-bold text-[var(--dim)] mb-2">My Folders</h3>
       {loading ? (
         <><SkeletonCard /><SkeletonCard /></>
-      ) : folders.length === 0 ? (
+      ) : (!folders || folders.length === 0) ? (
         <div className="text-center text-[var(--dim)] text-sm mt-10 glass-card p-8">No folders yet. Create or Import one!</div>
       ) : (
         folders.map((f, i) => (
           <div key={i} className="glass-card p-4 flex items-center gap-3">
              <div className="w-10 h-10 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><Folder size={18} /></div>
-             <div className="flex-1"><div className="text-white font-bold text-sm">{f.name}</div><div className="text-xs text-[var(--dim)]">{JSON.parse(f.groups_json).length} groups</div></div>
+             <div className="flex-1"><div className="text-white font-bold text-sm">{f.name}</div><div className="text-xs text-[var(--dim)]">
+               {(() => {
+                 try {
+                   const g = typeof f.groups_json === 'string' ? JSON.parse(f.groups_json) : f.groups_json;
+                   return Array.isArray(g) ? g.length : 0;
+                 } catch(e) { return 0; }
+               })()} groups
+             </div></div>
              <button onClick={() => handleEditFolder(f)} className="text-blue-400 hover:text-blue-300 p-2"><Settings size={18} /></button>
              <button onClick={() => downloadFolderFile(f.id)} className="text-[var(--dim)] hover:text-[var(--accent)] p-2"><Download size={18} /></button>
           </div>
