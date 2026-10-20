@@ -364,7 +364,7 @@ export default function AdminPage() {
 
               {loading ? <SkelList count={4} /> : (
                 <div className="card divide-y divide-[var(--border)]">
-                  {filteredUsers.map((u: any) => (
+                  {(filteredUsers || []).map((u: any) => (
                     <div key={u.id} className="p-3 flex items-center gap-3 flex-wrap">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--accent2)] to-emerald-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shrink-0">
                         {(u.first_name?.[0] || u.username?.[0] || "?").toUpperCase()}
@@ -409,7 +409,7 @@ export default function AdminPage() {
                 <div className="card p-12 text-center text-[var(--dim)] text-sm">No accounts</div>
               ) : (
                 <div className="grid gap-3">
-                  {accounts.map((a: any) => {
+                  {(accounts || []).map((a: any) => {
                     const owner = users.find(u => u.id === a.user_id);
                     return (
                       <div key={a.id} className="card card-hover p-4">
