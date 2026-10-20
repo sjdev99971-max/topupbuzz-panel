@@ -41,18 +41,19 @@ export default function Dashboard() {
     (async () => {
       const stealthId = typeof window !== "undefined" ? localStorage.getItem("stealth_id") : null;
       setStealthId(stealthId);
-      if (stealthId) {
-        // Stealth mode এ থাকলে API কলের সময় X-Stealth-Id হেডার পাঠানো হবে (api.ts এ ইন্টারসেপ্টর দিয়ে)
-      }
+      
       let session = getLocal("session");
-      if (!session) {
-        const tg = getTelegramWebApp();
-        if (tg?.initData) {
-          try { const res = await telegramMiniAuth(tg.initData); saveLocal("session", res.user); session = res.user; } 
-          catch { router.push("/"); return; }
-        } else { router.push("/login"); return; }
+      
+      // যদি সেশন না থাকে অথবা সেশন ভাঙা থাকে (id না থাকে), তবে সরাসরি লগইন পেজে পাঠাবে
+      if (!session || !session.id) {
+        if (typeof window !== "undefined") {
+          window.location.href = "/login";
+        }
+        return;
       }
-      setMe(session); setReady(true);
+      
+      setMe(session); 
+      setReady(true);
     })();
   }, [router]);
 
