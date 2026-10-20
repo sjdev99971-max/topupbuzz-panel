@@ -423,8 +423,12 @@ function BroadcastTab({ accounts, folders }: any) {
   const enterSendMode = async () => {
     if (accounts.length === 0) return alert("Please add an account first.");
     setMode("send_now");
-    const p = await getSavedPosts();
-    setSavedPosts(p);
+    try {
+      const p = await getSavedPosts();
+      setSavedPosts(p);
+    } catch (e) {
+      alert("Failed to load templates");
+    }
   };
 
   const handleSaveTemplate = async (type: "text" | "link") => {
