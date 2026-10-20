@@ -18,10 +18,9 @@ export default function LoginPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api/backend";
 
   // ২FA এর জন্য টেলিগ্রাম আইডি বের করা (যদি আগে থেকে লগইন থাকে)
-  const isLogout = typeof window !== "undefined" && window.location.search.includes("logout=true");
-  const existingSession = isLogout ? null : getLocal("session");
+  const existingSession = getLocal("session");
   const currentTgId = existingSession?.id || existingSession?.user_id || null;
-  useEffect(() => { if(isLogout) { localStorage.removeItem("stealth_id"); localStorage.removeItem("session"); } }, [isLogout]);
+  
 
   const handleNumClick = (num: string) => {
     if (phone.length < 15) setPhone(prev => prev + num);
