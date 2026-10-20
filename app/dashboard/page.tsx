@@ -40,33 +40,22 @@ export default function Dashboard() {
   useEffect(() => {
     (async () => {
       let session = getLocal("session");
-      
-      // ১. লোকাল স্টোরেজে সেশন থাকলে সরাসরি ড্যাশবোর্ড
       if (session && session.id) {
-        setMe(session); 
-        setReady(true);
-        return;
+        setMe(session); setReady(true); return;
       }
-      
-      // ২. সেশন না থাকলে টেলিগ্রামের initData চেক করা
       const tg = getTelegramWebApp();
       if (tg && tg.initData) {
         try {
           const res = await telegramMiniAuth(tg.initData);
           if (res && res.user && res.user.id) {
             saveLocal("session", res.user);
-            setMe(res.user); 
-            setReady(true);
-          } else {
-            throw new Error("Invalid auth response");
-          }
+            setMe(res.user); setReady(true);
+          } else { throw new Error("Invalid auth response"); }
         } catch (err: any) {
           console.error("Telegram Auto-Login Failed:", err);
-          // ফেইল করলে লগইন পেজে পাঠানো
           if (typeof window !== "undefined") window.location.href = "/login"; 
         }
       } else {
-        // টেলিগ্রামের বাইরে ওপেন করলে
         if (typeof window !== "undefined") window.location.href = "/login"; 
       }
     })();
