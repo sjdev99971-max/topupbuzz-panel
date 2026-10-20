@@ -39,31 +39,38 @@ export default function Dashboard() {
 
   useEffect(() => {
     (async () => {
-      const stealthId = typeof window !== "undefined" ? localStorage.getItem("stealth_id") : null;
-      setStealthId(stealthId);
-      
+      // ১. লোকাল স্টোরেজ থেকে সেশন চেক করা
       let session = getLocal("session");
       
-      // সেশন না থাকলে টেলিগ্রাম থেকে অটো-লগইন করবে
+      // ২. যদি সেশন না থাকে, তবে টেলিগ্রাম থেকে জোর করে অটো-লগইন করা
       if (!session || !session.id) {
         const tg = getTelegramWebApp();
-        if (tg?.initData) {
-          try { 
-            const res = await telegramMiniAuth(tg.initData); 
-            saveLocal("session", res.user); 
-            session = res.user; 
-          }
-          catch (err) { 
-            console.error("Auth failed", err);
+        
+        // টেলিগ্রাম ওয়েব অ্যাপের initData চেক
+        if (tg && tg.initData) {
+          try {
+            // ব্যাকএন্ডে টেলিগ্রাম অথেনটিকেশন পাঠানো
+            const res = await telegramMiniAuth(tg.initData);
+            if (res && res.user) {
+              saveLocal("session", res.user);
+              session = res.user;
+            } else {
+              throw new Error("Invalid auth response");
+            }
+          } catch (err) {
+            console.error("Telegram Auto-Login Failed:", err);
+            // ব্যাকএন্ড ফেইল করলে লগইন পেজে পাঠানো
             if (typeof window !== "undefined") window.location.href = "/login"; 
-            return; 
+            return;
           }
-        } else { 
+        } else {
+          // টেলিগ্রামের বাইরে (সাধারণ ব্রাউজারে) ওপেন করলে লগইন পেজে যাবে
           if (typeof window !== "undefined") window.location.href = "/login"; 
-          return; 
+          return;
         }
       }
       
+      // ৩. সেশন পাওয়া গেলে ড্যাশবোর্ড রেডি করা
       setMe(session); 
       setReady(true);
     })();
