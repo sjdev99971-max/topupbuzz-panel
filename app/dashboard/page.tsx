@@ -261,7 +261,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
   const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
 
   // Campaigns/Schedules States
-  const [campaigns, setCampaigns] = useState<any[]>({});
+  const [campaigns, setCampaigns] = useState<any>({});
   const [loadingCamps, setLoadingCamps] = useState(false);
 
   useEffect(() => {
