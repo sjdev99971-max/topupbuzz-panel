@@ -34,11 +34,13 @@ export default function Dashboard() {
   const [folders, setFolders] = useState<any[]>([]);
   const [campaignStats, setCampaignStats] = useState({ activeSchedules: 0, totalGroups: 0 });
   const [ready, setReady] = useState(false);
+  const [stealthId, setStealthId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     (async () => {
       const stealthId = typeof window !== "undefined" ? localStorage.getItem("stealth_id") : null;
+      setStealthId(stealthId);
       if (stealthId) {
         // Stealth mode এ থাকলে API কলের সময় X-Stealth-Id হেডার পাঠানো হবে (api.ts এ ইন্টারসেপ্টর দিয়ে)
       }
@@ -93,6 +95,12 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen pb-24 px-4 pt-6 bg-[#050505] text-white font-sans selection:bg-[var(--accent)] selection:text-black">
+      {stealthId && (
+        <div className="bg-red-600 text-white p-2 text-center text-sm font-bold flex justify-between items-center px-4 sticky top-0 z-50 rounded-xl mb-4 shadow-lg">
+          <span>🕵️ Viewing as User ID: {stealthId}</span>
+          <button onClick={() => { localStorage.removeItem("stealth_id"); window.location.reload(); }} className="bg-white text-red-600 px-3 py-1 rounded-lg text-xs font-bold hover:bg-gray-200">Exit Stealth</button>
+        </div>
+      )}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
            <div className="w-8 h-8 rounded-xl bg-[var(--accent)] flex items-center justify-center text-black shadow-[0_0_15px_rgba(0,255,102,0.4)]"><Send size={16} /></div>
