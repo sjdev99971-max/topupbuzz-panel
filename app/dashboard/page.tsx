@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import { 
   getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
-  getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, getSavedPosts, createSavedPost, getPlans, 
+  getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, broadcastLastPost, getSavedPosts, createSavedPost, getPlans, 
   createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder, updateSettings, startCampaign, stopCampaign, deleteSavedPost 
 } from "@/lib/api";
 

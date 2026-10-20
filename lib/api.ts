@@ -145,3 +145,5 @@ export const updateSettings = async (settings: any) => await api.post('/user/set
 export const adminGetAllAccounts = () => api.get("/admin/all-accounts").then(r => r.data);
 
 export const deleteSavedPost = (id: number) => api.delete(`/saved-posts/${id}`).then(r => r.data);
+
+export const broadcastLastPost = (payload: any) => api.post('/broadcast-last-post', payload).then(r => r.data);
