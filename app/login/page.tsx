@@ -50,7 +50,7 @@ export default function LoginPage() {
       setSessionId(data.session_id);
       setStep("otp");
     } catch (err: any) {
-      setError(err.message || "Something went wrong!");
+      setError(err.response?.data?.detail || err.message || "Failed to send OTP");
     }
     setLoading(false);
   };
@@ -92,7 +92,7 @@ export default function LoginPage() {
         router.push("/dashboard");
       }
     } catch (err: any) {
-      setError(err.message || "Verification failed!");
+      setError(err.response?.data?.detail || err.message || "Verification failed!");
     }
     setLoading(false);
   };
