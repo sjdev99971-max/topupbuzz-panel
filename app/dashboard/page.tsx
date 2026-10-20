@@ -246,103 +246,193 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
   );
 }
 function LibraryTab({ setTab, accounts, onRefresh }: any) {
+  const [view, setView] = useState<"menu" | "folders" | "settings" | "schedules">("menu");
+  
+  // Folder States
   const [folders, setFolders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
-  
   const [selectedAcc, setSelectedAcc] = useState("");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [folderName, setFolderName] = useState("");
   const [loadingDlgs, setLoadingDlgs] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [editingFolderId, setEditingFolderId] = useState<number | null>(null);
 
-  useEffect(() => { 
-    getFolders().then(f => { setFolders(Array.isArray(f) ? f : []); setLoading(false); }).catch(() => setLoading(false)); 
-  }, []);
+  // Campaigns/Schedules States
+  const [campaigns, setCampaigns] = useState<any[]>({});
+  const [loadingCamps, setLoadingCamps] = useState(false);
 
+  useEffect(() => {
+    if (view === "folders") {
+      getFolders().then(f => { setFolders(Array.isArray(f) ? f : []); setLoading(false); }).catch(() => setLoading(false));
+    }
+  }, [view]);
+
+  const loadCampaigns = async () => {
+    setLoadingCamps(true);
+    const camps: any = {};
+    for (const acc of accounts) {
+      try {
+        const res = await getCampaign(acc.id);
+        camps[acc.id] = res;
+      } catch (e) { camps[acc.id] = { status: "Stopped" }; }
+    }
+    setCampaigns(camps);
+    setLoadingCamps(false);
+  };
+
+  useEffect(() => {
+    if (view === "schedules") loadCampaigns();
+  }, [view, accounts]);
+
+  const toggleCampaign = async (accId: string, currentStatus: string) => {
+    try {
+      if (currentStatus === "Running") {
+        await stopCampaign(accId);
+        alert("✅ Campaign Stopped!");
+      } else {
+        await startCampaign(accId);
+        alert("🚀 Campaign Started!");
+      }
+      loadCampaigns();
+    } catch (e: any) {
+      alert("❌ Failed: " + (e.response?.data?.detail || e.message));
+    }
+  };
+
+  // Folder creation logic
   const loadGroups = async (accId: string) => {
     setSelectedAcc(accId); if (!accId) return;
     setLoadingDlgs(true); setDialogs([]);
-    try { const res = await refreshDialogs(accId); setDialogs([...(res.groups||[]), ...(res.channels||[])]); } 
+    try { const res = await refreshDialogs(accId); setDialogs([...(res.groups||[]), ...(res.channels||[])]); }
     catch { alert("Failed to load groups."); }
     setLoadingDlgs(false);
   };
-
   const handleCreateFolder = async () => {
     if (!folderName || selectedGroups.length === 0) return alert("Enter folder name and select groups.");
     setSaving(true);
     try {
       const groupsData = dialogs.filter(d => selectedGroups.includes(d.id));
-      if (editingFolderId) {
-        await updateFolder(editingFolderId, folderName, groupsData);
-        alert("Folder updated successfully!");
-      } else {
-        await createFolder(folderName, groupsData);
-        await joinMissingGroups(selectedAcc, groupsData);
-        alert("Folder created & background joining started!");
-      }
-      setIsCreating(false);
-      setFolderName(""); setSelectedGroups([]); setSelectedAcc(""); setDialogs([]); setEditingFolderId(null);
+      if (editingFolderId) await updateFolder(editingFolderId, folderName, groupsData);
+      else await createFolder(folderName, groupsData);
+      alert(editingFolderId ? "Folder Updated!" : "Folder created!");
+      setIsCreating(false); setFolderName(""); setSelectedGroups([]); setSelectedAcc(""); setDialogs([]); setEditingFolderId(null);
       getFolders().then(setFolders);
-      if(onRefresh) onRefresh();
     } catch (e: any) { alert("Failed to save folder."); }
     setSaving(false);
   };
 
+  if (view === "menu") {
+    return (
+      <div className="space-y-4 pb-20">
+        <h2 className="text-2xl font-bold text-white mb-6">Library</h2>
+        <div className="grid gap-4">
+          <div className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setView("folders")}>
+            <div className="w-12 h-12 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><Folder size={24} /></div>
+            <div className="flex-1"><div className="text-white font-bold text-lg">Folders</div><div className="text-xs text-[var(--dim)]">Manage your group lists</div></div>
+            <ChevronRight size={20} className="text-white/30" />
+          </div>
+          <div className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setView("settings")}>
+            <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400"><Settings size={24} /></div>
+            <div className="flex-1"><div className="text-white font-bold text-lg">Accounts Settings</div><div className="text-xs text-[var(--dim)]">Configure multiple accounts</div></div>
+            <ChevronRight size={20} className="text-white/30" />
+          </div>
+          <div className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setView("schedules")}>
+            <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400"><CalendarClock size={24} /></div>
+            <div className="flex-1"><div className="text-white font-bold text-lg">Schedules</div><div className="text-xs text-[var(--dim)]">Auto-poster manager</div></div>
+            <ChevronRight size={20} className="text-white/30" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const handleEditFolder = (f: any) => {
-    setEditingFolderId(f.id);
-    setFolderName(f.name);
-    const groups = typeof f.groups_json === 'string' ? JSON.parse(f.groups_json) : f.groups_json;
-    setSelectedGroups(groups.map((g: any) => g.id));
-    setIsCreating(true);
-  };
+  if (view === "settings") {
+    return (
+      <div className="space-y-4 pb-20">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={() => setView("menu")} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Account Settings</h2>
+        </div>
+        {accounts.length === 0 ? <div className="text-center text-[var(--dim)] glass-card p-6">No accounts connected.</div> : (
+          accounts.map((a: any) => (
+            <div key={a.id} className="glass-card p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><User size={18} /></div>
+                <div>
+                  <div className="text-white font-bold text-sm">{a.phone}</div>
+                  <div className="text-xs text-[var(--dim)]">Status: {a.health}</div>
+                </div>
+              </div>
+              <button onClick={() => { setTab("me"); }} className="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-bold">Edit Settings</button>
+            </div>
+          ))
+        )}
+      </div>
+    );
+  }
 
-  const handleImport = async (e: any) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (event: any) => {
-      try {
-        const data = JSON.parse(event.target.result);
-        if (!data || !data.name || !Array.isArray(data.groups)) throw new Error('Invalid format');
-        if (data.name && data.groups) {
-           await createFolder(data.name, data.groups);
-           if (accounts.length > 0) await joinMissingGroups(accounts[0].id, data.groups);
-           alert("Folder Imported!");
-           getFolders().then(setFolders);
-        }
-      } catch { alert("Invalid JSON file."); }
-    };
-    reader.readAsText(file);
-  };
+  if (view === "schedules") {
+    return (
+      <div className="space-y-4 pb-20">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={() => setView("menu")} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Schedule Manager</h2>
+        </div>
+        {loadingCamps ? <div className="text-center mt-10"><Loader2 className="animate-spin text-[var(--accent)] mx-auto" size={32}/></div> : (
+          accounts.map((a: any) => {
+            const camp = campaigns[a.id] || { status: "Stopped" };
+            const isRunning = camp.status === "Running";
+            return (
+              <div key={a.id} className="glass-card p-4 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+                  <div>
+                    <div className="text-white font-bold text-sm">{a.phone}</div>
+                    <div className="text-xs text-[var(--dim)]">Status: {camp.status}</div>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => toggleCampaign(a.id, camp.status)} 
+                  className={`px-4 py-2 rounded-lg text-sm font-bold ${isRunning ? 'bg-red-500/20 text-red-500' : 'bg-[var(--accent)] text-black'}`}
+                >
+                  {isRunning ? "Stop" : "Start"}
+                </button>
+              </div>
+            );
+          })
+        )}
+      </div>
+    );
+  }
 
+  // Folders View (Existing Logic)
   if (isCreating) {
     return (
       <div className="space-y-4 pb-10">
         <div className="flex items-center gap-3 mb-4">
            <button onClick={() => setIsCreating(false)} className="text-[var(--dim)] bg-white/5 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
-           <h2 className="text-xl font-bold text-white">Create New Folder</h2>
+           <h2 className="text-xl font-bold text-white">{editingFolderId ? 'Edit Folder' : 'Create Folder'}</h2>
         </div>
         <div className="glass-card p-4">
-          <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">1. Select Account to load groups</label>
+          <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">1. Select Account</label>
           <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => loadGroups(e.target.value)}>
             <option value="">-- Choose Account --</option>
             {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
           </select>
-          {loadingDlgs && <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-3"><Loader2 size={14} className="animate-spin" /> Fetching dialogs...</div>}
+          {loadingDlgs && <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-3"><Loader2 size={14} className="animate-spin" /> Fetching...</div>}        
         </div>
         {dialogs.length > 0 && (
           <div className="glass-card p-4">
-             <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">2. Select Groups ({selectedGroups.length} selected)</label>
+             <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">2. Select Groups</label>
              <div className="max-h-60 overflow-y-auto bg-[#050505] border border-[#1f1f22] rounded-xl p-2 custom-scrollbar">
                {dialogs.map((d: any) => (
                  <label key={d.id} className="flex items-center gap-3 p-2 hover:bg-white/5 rounded-lg cursor-pointer">
-                   <input type="checkbox" checked={selectedGroups.includes(d.id)} onChange={e => { 
-                     if (e.target.checked) setSelectedGroups([...selectedGroups, d.id]); 
-                     else setSelectedGroups(selectedGroups.filter(id => id !== d.id)); 
+                   <input type="checkbox" checked={selectedGroups.includes(d.id)} onChange={e => {
+                     if (e.target.checked) setSelectedGroups([...selectedGroups, d.id]);
+                     else setSelectedGroups(selectedGroups.filter(id => id !== d.id));
                    }} className="accent-[var(--accent)] w-4 h-4" />
                    <span className="text-sm text-white truncate flex-1">{d.title}</span>
                  </label>
@@ -355,48 +445,38 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
           <input type="text" className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" placeholder="e.g. VIP Groups" value={folderName} onChange={e => setFolderName(e.target.value)} />
         </div>
         <button onClick={handleCreateFolder} disabled={saving} className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold text-lg flex justify-center gap-2">
-          {saving ? <><Loader2 size={20} className="animate-spin" /> Saving...</> : "Save Folder & Auto-Join"}
+          {saving ? <Loader2 size={20} className="animate-spin" /> : "Save Folder"}
         </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-white">Library</h2>
-        <div className="flex gap-2">
-          <label className="bg-white/5 text-white px-3 py-2 rounded-xl text-sm font-bold flex items-center gap-1 cursor-pointer hover:bg-white/10">
-            <Upload size={16}/> Import
-            <input type="file" accept=".json" className="hidden" onChange={handleImport} />
-          </label>
-          <button className="bg-[var(--accent)] text-black px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-[0_0_15px_rgba(0,255,102,0.3)]" onClick={() => setIsCreating(true)}>
-            <Plus size={16}/> New Folder
-          </button>
-        </div>
+    <div className="space-y-4 pb-20">
+      <div className="flex items-center gap-3 mb-4">
+         <button onClick={() => setView("menu")} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+         <h2 className="text-xl font-bold text-white flex-1">My Folders</h2>
       </div>
-      
-      <h3 className="text-sm font-bold text-[var(--dim)] mb-2">My Folders</h3>
+      <button className="w-full bg-[var(--accent)] text-black py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2 mb-4" onClick={() => { setIsCreating(true); setEditingFolderId(null); }}>
+        <Plus size={16}/> Create New Folder
+      </button>
       {loading ? (
-        <><SkeletonCard /><SkeletonCard /></>
-      ) : (!folders || folders.length === 0) ? (
-        <div className="text-center text-[var(--dim)] text-sm mt-10 glass-card p-8">No folders yet. Create or Import one!</div>
+        <div className="text-center mt-10"><Loader2 className="animate-spin text-[var(--accent)] mx-auto" size={32}/></div>
+      ) : folders.length === 0 ? (
+        <div className="text-center text-[var(--dim)] text-sm mt-10 glass-card p-8">No folders yet.</div>
       ) : (
-        folders.map((f, i) => (
-          <div key={i} className="glass-card p-4 flex items-center gap-3">
-             <div className="w-10 h-10 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><Folder size={18} /></div>
-             <div className="flex-1"><div className="text-white font-bold text-sm">{f.name}</div><div className="text-xs text-[var(--dim)]">
-               {(() => {
-                 try {
-                   const g = typeof f.groups_json === 'string' ? JSON.parse(f.groups_json) : f.groups_json;
-                   return Array.isArray(g) ? g.length : 0;
-                 } catch(e) { return 0; }
-               })()} groups
-             </div></div>
-             <button onClick={() => handleEditFolder(f)} className="text-blue-400 hover:text-blue-300 p-2"><Settings size={18} /></button>
-             <button onClick={() => downloadFolderFile(f.id)} className="text-[var(--dim)] hover:text-[var(--accent)] p-2"><Download size={18} /></button>
-          </div>
-        ))
+        folders.map((f, i) => {
+          let groupCount = 0;
+          try { groupCount = (typeof f.groups_json === 'string' ? JSON.parse(f.groups_json) : f.groups_json).length; } catch(e){}
+          return (
+            <div key={i} className="glass-card p-4 flex items-center gap-3">
+               <div className="w-10 h-10 rounded-xl bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><Folder size={18} /></div>
+               <div className="flex-1"><div className="text-white font-bold text-sm">{f.name}</div><div className="text-xs text-[var(--dim)]">{groupCount} groups</div></div>
+               <button onClick={() => { setEditingFolderId(f.id); setFolderName(f.name); setIsCreating(true); }} className="text-blue-400 p-2"><Settings size={18} /></button>
+               <button onClick={() => downloadFolderFile(f.id)} className="text-[var(--dim)] hover:text-[var(--accent)] p-2"><Download size={18} /></button>
+            </div>
+          );
+        })
       )}
     </div>
   );
