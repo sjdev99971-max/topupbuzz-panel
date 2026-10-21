@@ -617,10 +617,13 @@ function BroadcastTab({ accounts, folders }: any) {
         throw new Error(res?.message || "Failed to start broadcast");
       }
     } catch (e: any) { 
-      const errMsg = e.response?.data?.detail || e.message || "Unknown error";
-      setTimeout(() => alert(`❌ Broadcast failed: ${errMsg}`), 100);
-    } finally {
-      setSending(false); 
+      setSending(false); // সবার আগে লোডিং বন্ধ করা
+      const status = e.response?.status || "???";
+      const detail = e.response?.data?.detail || e.message || "Unknown error";
+      const errMsg = `Status: ${status}\nReason: ${detail}`;
+      
+      // setTimeout ব্যবহার করা হয়েছে যাতে UI আপডেট হওয়ার সময় পায়
+      setTimeout(() => alert(`❌ Broadcast failed!\n${errMsg}`), 200);
     }
   };;
 
