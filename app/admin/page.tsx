@@ -1,3 +1,4 @@
+// RENT_ACCOUNT_FEATURE_V1
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
@@ -443,7 +444,7 @@ export default function AdminPage() {
                                 alert("✅ Rent Account Settings Updated!");
                                 refresh();
                             }} className={`btn btn-sm ${a.is_rent === 1 ? 'bg-purple-600 text-white' : 'btn-ghost'}`}>
-                                {a.is_rent === 1 ? "⭐ Managed" : "Make Rent"}
+                                {a.is_rent === 1 ? "⭐ Managed (Rent)" : "Make Rent Account"}
                             </button>
 
                             <Link href={`/dashboard/accounts/${a.id}`} className="btn btn-sm">View</Link>
