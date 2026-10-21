@@ -618,7 +618,7 @@ function BroadcastTab({ accounts, folders }: any) {
       }
     } catch (e: any) { 
       const errMsg = e.response?.data?.detail || e.message || "Unknown error";
-      alert(`❌ Broadcast failed: ${errMsg}`); 
+      setTimeout(() => alert(`❌ Broadcast failed: ${errMsg}`), 100);
     } finally {
       setSending(false); 
     }
