@@ -491,7 +491,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
 }
 
 function BroadcastTab({ accounts, folders }: any) {
-  const [mode, setMode] = useState<"list" | "write" | "link" | "saved" | "send_now" | "history">("list");
+  const [mode, setMode] = useState<"list" | "write" | "link" | "saved" | "send_now" | "history" | "channel_id">("list");
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
   const [saving, setSaving] = useState(false);
