@@ -10,7 +10,7 @@ import { toast } from "@/components/Toast";
 import {
   getMe, getLocal, clearLocal, getTelegramWebApp, telegramMiniAuth,
   getAdminStats, adminGetUsers, adminUpdatePlan, adminSetUserPlan,
-  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser
+  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser, adminMakeRentAccount
 } from "@/lib/api";
 
 type Tab = "stats" | "users" | "accounts" | "broadcast" | "pricing";
@@ -425,6 +425,27 @@ export default function AdminPage() {
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`tag ${a.health === "Safe" ? "tag-ok" : "tag-warn"}`}>{a.health}</span>
+                            
+                            {/* Rent Manager Button */}
+                            <button onClick={async () => {
+                                const isRentStr = prompt("Make this a Rent Account? (Type 1 for Yes, 0 for No)", a.is_rent === 1 ? "1" : "0");
+                                if (isRentStr === null) return;
+                                const isRent = parseInt(isRentStr);
+                                if (isRent !== 0 && isRent !== 1) return alert("Invalid input. Use 0 or 1.");
+                                
+                                let limit = a.hourly_limit || 30;
+                                if (isRent === 1) {
+                                    const limitStr = prompt("Set Hourly Message Limit (Default 30):", limit.toString());
+                                    if (limitStr) limit = parseInt(limitStr);
+                                }
+                                
+                                await adminMakeRentAccount(a.id, isRent, limit);
+                                alert("✅ Rent Account Settings Updated!");
+                                refresh();
+                            }} className={`btn btn-sm ${a.is_rent === 1 ? 'bg-purple-600 text-white' : 'btn-ghost'}`}>
+                                {a.is_rent === 1 ? "⭐ Managed" : "Make Rent"}
+                            </button>
+
                             <Link href={`/dashboard/accounts/${a.id}`} className="btn btn-sm">View</Link>
                             {owner && (
                               <button onClick={() => doStealth(owner)} className="btn btn-sm btn-icon" title="Stealth as owner">
