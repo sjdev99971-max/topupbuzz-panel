@@ -151,3 +151,6 @@ export const broadcastLastPost = (payload: any) => api.post('/broadcast-last-pos
 export const adminMakeRentAccount = (acc_id: string, is_rent: number, hourly_limit: number, is_frozen?: number) => api.post("/admin/make-rent", { acc_id, is_rent, hourly_limit, is_frozen }).then(r => r.data);
 
 export const getRentedAccounts = () => api.get('/rented-accounts').then(r => r.data);
+
+export const getAccountSettings = (id: string) => api.get(`/accounts/${id}/settings`).then(r => r.data);
+export const saveAccountSettings = (id: string, payload: any) => api.post(`/accounts/${id}/settings`, payload).then(r => r.data);

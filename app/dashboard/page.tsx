@@ -254,14 +254,11 @@ function HomeTab({ stats, campaignStats, folders, accounts, rentedAccounts, load
 function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
   const [view, setView] = useState<"menu" | "folders" | "settings" | "schedules">("menu");
   
-  // Folder States
+  // Folders States
   const [folders, setFolders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedAcc, setSelectedAcc] = useState("");
-  const [channelId, setChannelId] = useState("");
-  const [savedChannels, setSavedChannels] = useState<any[]>([]);
-  const [channelMode, setChannelMode] = useState("copy");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [folderName, setFolderName] = useState("");
@@ -273,45 +270,75 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
   const [campaigns, setCampaigns] = useState<any>({});
   const [loadingCamps, setLoadingCamps] = useState(false);
 
+  // Per-Account Settings States
+  const [settingsAccId, setSettingsAccId] = useState<string | null>(null);
+  const [accSettings, setAccSettings] = useState<any>({
+    active_start: "08:00", active_end: "23:00", forward_mode: "copy",
+    batch_size: 1, delay_minutes: 10, max_retries: 3, notifications: true
+  });
+  const [loadingSettings, setLoadingSettings] = useState(false);
+  const [helpData, setHelpData] = useState<any>(null);
+
+  // Folder load
   useEffect(() => {
     if (view === "folders") {
       getFolders().then(f => { setFolders(Array.isArray(f) ? f : []); setLoading(false); }).catch(() => setLoading(false));
     }
   }, [view]);
 
+  // Campaigns load
   const loadCampaigns = async () => {
     setLoadingCamps(true);
     const camps: any = {};
     for (const acc of accounts) {
-      try {
-        const res = await getCampaign(acc.id);
-        camps[acc.id] = res;
-      } catch (e) { camps[acc.id] = { status: "Stopped" }; }
+      try { camps[acc.id] = await getCampaign(acc.id); } catch (e) { camps[acc.id] = { status: "Stopped" }; }
     }
-    setCampaigns(camps);
-    setLoadingCamps(false);
+    setCampaigns(camps); setLoadingCamps(false);
+  };
+  useEffect(() => { if (view === "schedules") loadCampaigns(); }, [view, accounts]);
+
+  // Account Settings Load
+  const loadAccountSettings = async (id: string) => {
+    setSettingsAccId(id); setLoadingSettings(true);
+    try {
+      const res = await getAccountSettings(id);
+      if (res && res.settings) {
+        setAccSettings({
+          active_start: res.settings.active_start || "08:00",
+          active_end: res.settings.active_end || "23:00",
+          forward_mode: res.settings.forward_mode || "copy",
+          batch_size: res.settings.batch_size || 1,
+          delay_minutes: res.settings.delay_minutes || 10,
+          max_retries: res.settings.max_retries || 3,
+          notifications: res.settings.notifications ?? true
+        });
+      }
+    } catch (e) { alert("Failed to load settings"); }
+    setLoadingSettings(false);
   };
 
-  useEffect(() => {
-    if (view === "schedules") loadCampaigns();
-  }, [view, accounts]);
+  const handleSaveSettings = async () => {
+    if (!settingsAccId) return;
+    if (accSettings.delay_minutes < 5 && accSettings.delay_minutes > 0) {
+      if(!confirm("WARNING: Delay less than 5 minutes can get your account restricted. Proceed?")) return;
+    }
+    setSaving(true);
+    try {
+      await saveAccountSettings(settingsAccId, accSettings);
+      alert("✅ Settings saved successfully for this account!");
+      setSettingsAccId(null); // ফিরে যাওয়া
+    } catch (e) { alert("Failed to save settings."); }
+    setSaving(false);
+  };
 
   const toggleCampaign = async (accId: string, currentStatus: string) => {
     try {
-      if (currentStatus === "Running") {
-        await stopCampaign(accId);
-        alert("✅ Campaign Stopped!");
-      } else {
-        await startCampaign(accId);
-        alert("🚀 Campaign Started!");
-      }
+      if (currentStatus === "Running") { await stopCampaign(accId); alert("✅ Stopped!"); }
+      else { await startCampaign(accId); alert("🚀 Started!"); }
       loadCampaigns();
-    } catch (e: any) {
-      alert("❌ Failed: " + (e.response?.data?.detail || e.message));
-    }
+    } catch (e: any) { alert("❌ Failed: " + (e.response?.data?.detail || e.message)); }
   };
 
-  // Folder creation logic
   const loadGroups = async (accId: string) => {
     setSelectedAcc(accId); if (!accId) return;
     setLoadingDlgs(true); setDialogs([]);
@@ -332,6 +359,14 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
     } catch (e: any) { alert("Failed to save folder."); }
     setSaving(false);
   };
+
+  // Helper component for Help Icon
+  const HelpIcon = ({ title, desc, example }: any) => (
+    <button onClick={() => setHelpData({ title, desc, example })} className="flex items-center gap-1 ml-2 group">
+      <HelpCircle size={16} className="text-[var(--accent)] group-hover:animate-spin" />
+      <span className="rgb-neon-text text-[10px]">(ক্লিক করে জানুন)</span>
+    </button>
+  );
 
   if (view === "menu") {
     return (
@@ -358,24 +393,134 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
     );
   }
 
+  // === Account Settings View ===
   if (view === "settings") {
+    if (settingsAccId) {
+      return (
+        <div className="space-y-4 pb-20">
+          <div className="flex items-center gap-3 mb-4">
+             <button onClick={() => setSettingsAccId(null)} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+             <h2 className="text-xl font-bold text-white">Settings for {accounts.find(a => a.id === settingsAccId)?.phone}</h2>
+          </div>
+
+          {loadingSettings ? <div className="text-center mt-10"><Loader2 className="animate-spin text-[var(--accent)] mx-auto" size={32}/></div> : (
+            <div className="glass-card p-5 space-y-6">
+              <div className="rgb-neon-border p-4 text-sm text-white/90 space-y-2">
+                 <div className="flex items-center gap-2 rgb-neon-text font-bold mb-1"><ShieldAlert size={18} /> টেলিগ্রাম সেফটি গাইডলাইন</div>
+                 <p>টেলিগ্রামের স্প্যাম ফিল্টার অত্যন্ত কড়া। একসাথে অনেক পোস্ট পাঠালে অ্যাকাউন্ট ব্লক হতে পারে।</p>
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                   <CalendarClock size={16} className="mr-2"/> Active Hours
+                   <HelpIcon title="Active Hours" desc="কোন সময়ে বট পোস্ট করবে।" example="সকাল ৮টা থেকে রাত ১১টা দিলে, এই সময়ের বাইরে বট পোস্ট করবে না।" />
+                </label>
+                <div className="flex items-center gap-2">
+                   <input type="time" value={accSettings.active_start} onChange={e => setAccSettings({...accSettings, active_start: e.target.value})} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+                   <span className="text-white/50">to</span>
+                   <input type="time" value={accSettings.active_end} onChange={e => setAccSettings({...accSettings, active_end: e.target.value})} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+                </div>
+              </div>
+
+              <div className="border-t border-white/5 pt-4">
+                <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                   <Send size={16} className="mr-2"/> Forward Mode
+                   <HelpIcon title="Forward Mode" desc="মেসেজ পাঠানোর ধরন।" example="Copy দিলে 'Forwarded from' লেখা থাকবে না। Forward দিলে ট্যাগ সহ যাবে।" />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                   <button onClick={() => setAccSettings({...accSettings, forward_mode: "copy"})} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${accSettings.forward_mode === "copy" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Copy (No Tag)</button>
+                   <button onClick={() => setAccSettings({...accSettings, forward_mode: "forward"})} className={`py-2 rounded-xl text-sm font-bold border transition-colors ${accSettings.forward_mode === "forward" ? "bg-[var(--accent)] text-black border-[var(--accent)]" : "bg-transparent text-white border-white/20"}`}>Forward (With Tag)</button>
+                </div>
+              </div>
+
+              <div className="border-t border-white/5 pt-4">
+                <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                   <Zap size={16} className="mr-2"/> Batch Size
+                   <HelpIcon title="Batch Size" desc="একসাথে কতগুলো গ্রুপে মেসেজ পাঠাবে।" example="১ দিলে একটার পর একটা যাবে (সবচেয়ে সেফ)। ৩ দিলে ৩টি গ্রুপে একসাথে যাবে।" />
+                </label>
+                <input type="number" min="1" max="20" value={accSettings.batch_size} onChange={e => setAccSettings({...accSettings, batch_size: Number(e.target.value)})} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+              </div>
+
+              <div className="border-t border-white/5 pt-4">
+                <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                   <Clock size={16} className="mr-2"/> Delay (মিনিট)
+                   <HelpIcon title="Delay" desc="পরবর্তী ব্যাচে যাওয়ার আগে কতক্ষণ অপেক্ষা করবে।" example="১০ দিলে প্রতি ১০ মিনিট পর পর পোস্ট যাবে। ৫ মিনিটের নিচে দিলে ব্লক হওয়ার সম্ভাবনা থাকে।" />
+                </label>
+                <input type="number" min="0" value={accSettings.delay_minutes} onChange={e => setAccSettings({...accSettings, delay_minutes: Number(e.target.value)})} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]" />
+                <div className="mt-2 text-[11px] font-bold text-white bg-red-500/20 p-2 rounded-lg border border-red-500/50 flex items-center gap-1"><ShieldAlert size={12} /> সতর্কতা: ৫ মিনিটের নিচে ডিলে দিলে অ্যাকাউন্ট ব্লক হতে পারে।</div>
+              </div>
+
+              <div className="border-t border-white/5 pt-4">
+                <label className="text-sm font-semibold text-white mb-2 flex items-center">
+                   <Zap size={16} className="mr-2"/> Auto Retry
+                   <HelpIcon title="Auto Retry" desc="পোস্ট ফেইল হলে বট কতবার আবার চেষ্টা করবে।" example="৩ দিলে পোস্ট ফেইল হলে ৩ বার অটোমেটিক আবার পাঠানোর চেষ্টা করবে।" />
+                </label>
+                <select value={accSettings.max_retries} onChange={e => setAccSettings({...accSettings, max_retries: Number(e.target.value)})} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-[var(--accent)]">
+                  <option value={1}>1 Attempt</option>
+                  <option value={3}>3 Attempts (Recommended)</option>
+                  <option value={5}>5 Attempts</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between border-t border-white/5 pt-4">
+                <div>
+                   <div className="text-sm font-semibold text-white flex items-center">
+                      <Settings size={16} className="mr-2"/> Daily Notifications
+                      <HelpIcon title="Notifications" desc="টেলিগ্রামের সেফটি টিপস।" example="দিনে ২ বার বট আপনাকে মেসেজ দিয়ে সতর্ক করবে।" />
+                   </div>
+                </div>
+                <button onClick={() => setAccSettings({...accSettings, notifications: !accSettings.notifications})} className={`w-12 h-6 rounded-full transition-colors relative ${accSettings.notifications ? 'bg-[var(--accent)]' : 'bg-white/20'}`}>
+                  <div className={`w-5 h-5 rounded-full bg-white absolute top-0.5 transition-all ${accSettings.notifications ? 'left-6' : 'left-0.5'}`}></div>
+                </button>
+              </div>
+            </div>
+          )}
+
+          <button onClick={handleSaveSettings} disabled={saving} className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold flex justify-center items-center mt-4 shadow-[0_0_15px_rgba(28,212,90,0.3)]">
+            {saving ? <Loader2 size={20} className="animate-spin" /> : "Save Settings for this Account"}
+          </button>
+
+          {helpData && (
+            <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setHelpData(null)}>
+              <div className="bg-[#111] border border-[#1cd45a]/50 rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-[var(--accent)]">{helpData.title}</h3>
+                  <button onClick={() => setHelpData(null)} className="text-white/50 hover:text-white bg-white/5 p-1 rounded-full"><X size={20}/></button>
+                </div>
+                <p className="text-white text-sm mb-4">{helpData.desc}</p>
+                <div className="bg-[#050505] p-3 rounded-xl border border-white/10">
+                   <p className="text-xs text-[var(--accent)] font-bold mb-1">উদাহরণ:</p>
+                   <p className="text-sm text-white/80">{helpData.example}</p>
+                </div>
+                <button onClick={() => setHelpData(null)} className="w-full mt-6 bg-white/10 text-white font-bold py-3 rounded-xl hover:bg-white/20">বুঝেছি</button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Accounts List
     return (
       <div className="space-y-4 pb-20">
         <div className="flex items-center gap-3 mb-4">
            <button onClick={() => setView("menu")} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
            <h2 className="text-xl font-bold text-white">Account Settings</h2>
         </div>
-        {accounts.length === 0 ? <div className="text-center text-[var(--dim)] glass-card p-6">No accounts connected.</div> : (
-          accounts.map((a: any) => (
-            <div key={a.id} className="glass-card p-4 flex items-center justify-between">
+        
+        {[...accounts, ...(rentedAccounts || [])].length === 0 ? (
+          <div className="text-center text-[var(--dim)] glass-card p-6">No accounts connected.</div>
+        ) : (
+          [...accounts, ...(rentedAccounts || [])].map((a: any) => (
+            <div key={a.id} className="glass-card p-4 flex items-center justify-between cursor-pointer hover:bg-white/5" onClick={() => loadAccountSettings(a.id)}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[var(--accent-dim)] flex items-center justify-center text-[var(--accent)]"><User size={18} /></div>
                 <div>
-                  <div className="text-white font-bold text-sm">{a.phone}</div>
-                  <div className="text-xs text-[var(--dim)]">Status: {a.health}</div>
+                  <div className="text-white font-bold text-sm">{a.phone} {a.is_rent === 1 && "⭐"}</div>
+                  <div className="text-xs text-[var(--dim)]">Status: {a.health || 'Unknown'}</div>
                 </div>
               </div>
-              <button onClick={() => { setTab("me"); }} className="bg-white/10 text-white px-4 py-2 rounded-lg text-sm font-bold">Edit Settings</button>
+              <ChevronRight size={20} className="text-white/30" />
             </div>
           ))
         )}
@@ -383,6 +528,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
     );
   }
 
+  // === Schedules View ===
   if (view === "schedules") {
     return (
       <div className="space-y-4 pb-20">
@@ -391,7 +537,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
            <h2 className="text-xl font-bold text-white">Schedule Manager</h2>
         </div>
         {loadingCamps ? <div className="text-center mt-10"><Loader2 className="animate-spin text-[var(--accent)] mx-auto" size={32}/></div> : (
-          accounts.map((a: any) => {
+          [...accounts, ...(rentedAccounts || [])].map((a: any) => {
             const camp = campaigns[a.id] || { status: "Stopped" };
             const isRunning = camp.status === "Running";
             return (
@@ -399,14 +545,11 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
                 <div className="flex items-center gap-3">
                   <div className={`w-2 h-2 rounded-full ${isRunning ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
                   <div>
-                    <div className="text-white font-bold text-sm">{a.phone}</div>
+                    <div className="text-white font-bold text-sm">{a.phone} {a.is_rent === 1 && "⭐"}</div>
                     <div className="text-xs text-[var(--dim)]">Status: {camp.status}</div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => toggleCampaign(a.id, camp.status)} 
-                  className={`px-4 py-2 rounded-lg text-sm font-bold ${isRunning ? 'bg-red-500/20 text-red-500' : 'bg-[var(--accent)] text-black'}`}
-                >
+                <button onClick={() => toggleCampaign(a.id, camp.status)} className={`px-4 py-2 rounded-lg text-sm font-bold ${isRunning ? 'bg-red-500/20 text-red-500' : 'bg-[var(--accent)] text-black'}`}>
                   {isRunning ? "Stop" : "Start"}
                 </button>
               </div>
@@ -417,7 +560,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
     );
   }
 
-  // Folders View (Existing Logic)
+  // Folder View
   if (isCreating) {
     return (
       <div className="space-y-4 pb-10">
@@ -429,7 +572,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
           <label className="text-xs text-[var(--dim)] mb-2 block font-semibold">1. Select Account</label>
           <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => loadGroups(e.target.value)}>
             <option value="">-- Choose Account --</option>
-            {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+            {[...accounts, ...(rentedAccounts || [])].map((a: any) => <option key={a.id} value={a.id}>{a.phone} {a.is_rent === 1 && "⭐"}</option>)}
           </select>
           {loadingDlgs && <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-3"><Loader2 size={14} className="animate-spin" /> Fetching...</div>}        
         </div>
