@@ -469,9 +469,7 @@ export default function AdminPage() {
             <div className="fade space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2 text-[var(--text)]">
-                    ⭐ Rent Accounts Manager
-                  </h1>
+                  <h1 className="text-2xl font-bold flex items-center gap-2 text-[var(--text)]">⭐ Rent Accounts Manager</h1>
                   <p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p>
                 </div>
               </div>
@@ -483,44 +481,29 @@ export default function AdminPage() {
               ) : (
                 <div className="grid gap-4">
                   {accounts.filter((a: any) => a.is_rent === 1).map((a: any) => (
-                    <div key={a.id} className="card p-5 border border-[var(--accent2)]/30 bg-[var(--surface)] shadow-lg relative overflow-hidden">
-                      {/* Top decorative bar */}
+                    <div key={a.id} className="card p-5 border border-[var(--accent2)]/30 bg-[var(--surface)] relative overflow-hidden">
                       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--accent2)] to-purple-500"></div>
-                      
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mt-2">
-                        
                         <div className="flex items-center gap-4 min-w-0 flex-1">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent2)]/20 to-purple-500/20 flex items-center justify-center text-[var(--accent2)] text-xl font-bold shrink-0 border border-[var(--accent2)]/30">
-                            ⭐
-                          </div>
+                          <div className="w-12 h-12 rounded-xl bg-[var(--accent2)]/20 flex items-center justify-center text-[var(--accent2)] text-xl font-bold shrink-0 border border-[var(--accent2)]/30">⭐</div>
                           <div className="min-w-0">
-                            <div className="text-base font-bold text-[var(--text)] truncate flex items-center gap-2">
-                              {a.phone}
-                            </div>
-                            <div className="text-xs text-[var(--dim2)] mt-1.5 flex flex-wrap items-center gap-3">
-                              <span className="bg-[var(--bg)] px-2 py-1 rounded-md border border-[var(--border)]">
-                                Limit: <span className="text-white font-bold">{a.hourly_limit || 30} msgs/h</span>
-                              </span>
-                              <span className={`px-2 py-1 rounded-md border font-bold ${a.is_frozen === 1 ? "bg-red-500/10 text-red-500 border-red-500/30" : "bg-green-500/10 text-green-500 border-green-500/30"}`}>
-                                {a.is_frozen === 1 ? "❄️ Frozen" : "🔥 Active"}
-                              </span>
-                              <span className={`px-2 py-1 rounded-md border font-bold ${a.user_id ? "bg-orange-500/10 text-orange-400 border-orange-500/30" : "bg-gray-500/10 text-gray-400 border-gray-500/30"}`}>
-                                {a.user_id ? `In Use (User: ${a.user_id})` : "Unused (Available)"}
-                              </span>
+                            <div className="text-base font-bold text-[var(--text)] truncate">{a.phone}</div>
+                            <div className="text-xs text-[var(--dim2)] mt-1.5 flex flex-wrap items-center gap-2">
+                              <span className="bg-[var(--bg)] px-2 py-1 rounded-md border border-[var(--border)]">Limit: <span className="text-white font-bold">{a.hourly_limit || 30} /h</span></span>
+                              <span className={`px-2 py-1 rounded-md border font-bold ${a.is_frozen === 1 ? "bg-red-500/10 text-red-500 border-red-500/30" : "bg-green-500/10 text-green-500 border-green-500/30"}`}>{a.is_frozen === 1 ? "❄️ Frozen" : "🔥 Active"}</span>
+                              <span className={`px-2 py-1 rounded-md border font-bold ${a.user_id ? "bg-orange-500/10 text-orange-400 border-orange-500/30" : "bg-gray-500/10 text-gray-400 border-gray-500/30"}`}>{a.user_id ? `In Use (User: ${a.user_id})` : "Unused"}</span>
                             </div>
                           </div>
                         </div>
-
                         <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <button onClick={async () => {
                             const newStatus = a.is_frozen === 1 ? 0 : 1;
                             await adminMakeRentAccount(a.id, 1, a.hourly_limit || 30, newStatus);
                             alert(newStatus === 1 ? "❄️ Account Frozen!" : "🔥 Account Unfrozen!");
                             refresh();
-                          }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-[var(--surface3)] text-[var(--text)]'}`}>
+                          }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500 text-white' : 'bg-[var(--surface3)] text-[var(--text)]'}`}>
                             {a.is_frozen === 1 ? "❄️ Unfreeze" : "❄️ Freeze"}
                           </button>
-
                           <button onClick={async () => {
                             const limitStr = prompt("Set new Hourly Limit:", (a.hourly_limit || 30).toString());
                             if (limitStr) {
@@ -528,23 +511,20 @@ export default function AdminPage() {
                               alert("✅ Limit Updated!");
                               refresh();
                             }
-                          }} className="btn btn-sm bg-[var(--surface3)] text-[var(--text)] hover:bg-[var(--border)]">
-                            ✏️ Edit Limit
-                          </button>
-
+                          }} className="btn btn-sm bg-[var(--surface3)] text-[var(--text)]">✏️ Edit Limit</button>
                           <button onClick={async () => {
                             if(!confirm("Remove this account from Rent System?")) return;
                             await adminMakeRentAccount(a.id, 0, 30, 0);
-                            alert("✅ Removed from Rent System!");
-                            refresh();
-                          }} className="btn btn-sm bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/30">
-                            🗑️ Remove
-                          </button>
+                            alert("✅ Removed!"); refresh();
+                          }} className="btn btn-sm bg-red-500/10 text-red-500 border border-red-500/30">🗑️ Remove</button>
                         </div>
-                        
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
                 </div>
               )}
             </div>
