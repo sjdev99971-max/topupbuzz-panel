@@ -458,7 +458,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
         <div className="space-y-4 pb-20">
           <div className="flex items-center gap-3 mb-4">
              <button onClick={() => setSettingsAccId(null)} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
-             <h2 className="text-xl font-bold text-white">Settings for {accounts.find(a => a.id === settingsAccId)?.phone}</h2>
+             <h2 className="text-xl font-bold text-white">Settings for {accounts.find((a: any) => a.id === settingsAccId)?.phone}</h2>
           </div>
 
           {loadingSettings ? <div className="text-center mt-10"><Loader2 className="animate-spin text-[var(--accent)] mx-auto" size={32}/></div> : (
