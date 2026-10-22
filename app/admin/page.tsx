@@ -28,6 +28,15 @@ export default function AdminPage() {
   const [broadcast, setBroadcast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editPlan, setEditPlan] = useState<any>({});
+
+  const [newPlanName, setNewPlanName] = useState("");
+  const [newPlanPrice, setNewPlanPrice] = useState("");
+  const [newPlanDays, setNewPlanDays] = useState("30");
+  const [newPlanMaxAcc, setNewPlanMaxAcc] = useState("1");
+  const [newPlanMaxJoins, setNewPlanMaxJoins] = useState("50");
+  const [newPlanMaxMsgs, setNewPlanMaxMsgs] = useState("1000");
+  const [newPlanAccounts, setNewPlanAccounts] = useState<string[]>([]);
+
   const defaultPlans = [
     { name: "unverified", price: 0, days: 0, max_accounts: 0, max_daily_joins: 0, max_daily_messages: 0 },
     { name: "basic", price: 50, days: 30, max_accounts: 1, max_daily_joins: 50, max_daily_messages: 10000 },
@@ -149,6 +158,29 @@ export default function AdminPage() {
       toast(`${p.name} pricing updated`, "success");
       refresh();
     } catch { toast("Save failed", "error"); }
+    setBusy(false);
+  };
+
+  
+  const handleCreatePlan = async () => {
+    if (!newPlanName.trim()) return alert("Enter plan name");
+    setBusy(true);
+    try {
+      await adminUpdatePlan({
+        name: newPlanName.toLowerCase(),
+        price: Number(newPlanPrice) || 0,
+        days: Number(newPlanDays) || 30,
+        max_accounts: Number(newPlanMaxAcc) || 1,
+        max_daily_joins: Number(newPlanMaxJoins) || 50,
+        max_daily_messages: Number(newPlanMaxMsgs) || 1000,
+        included_accounts: newPlanAccounts
+      });
+      alert("✅ Plan created successfully!");
+      // ফর্ম ক্লিয়ার
+      setNewPlanName(""); setNewPlanPrice(""); setNewPlanDays("30"); 
+      setNewPlanMaxAcc("1"); setNewPlanMaxJoins("50"); setNewPlanMaxMsgs("1000"); setNewPlanAccounts([]);
+      refresh();
+    } catch (e) { alert("Failed to create plan"); }
     setBusy(false);
   };
 
@@ -425,6 +457,64 @@ export default function AdminPage() {
           {tab === "pricing" && (
             <div className="fade space-y-5">
               <div><h1 className="text-2xl font-bold">Plan Pricing</h1><p className="text-sm text-[var(--dim)] mt-0.5">Configure limits & prices</p></div>
+
+              {/* CREATE NEW PLAN UI */}
+              <div className="card p-5 border border-[var(--accent2)]/30">
+                <div className="text-sm font-semibold mb-4 flex items-center gap-2">✨ Create New Plan</div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
+                  <div>
+                    <label className="text-[10px] text-[var(--dim)] block mb-1">Plan Name</label>
+                    <input type="text" value={newPlanName} onChange={e => setNewPlanName(e.target.value)} placeholder="e.g. vip" className="inp py-2 text-sm w-full" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-[var(--dim)] block mb-1">Price (৳)</label>
+                    <input type="number" value={newPlanPrice} onChange={e => setNewPlanPrice(e.target.value)} className="inp py-2 text-sm w-full" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-[var(--dim)] block mb-1">Duration (Days)</label>
+                    <input type="number" value={newPlanDays} onChange={e => setNewPlanDays(e.target.value)} className="inp py-2 text-sm w-full" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-[var(--dim)] block mb-1">Max Accounts</label>
+                    <input type="number" value={newPlanMaxAcc} onChange={e => setNewPlanMaxAcc(e.target.value)} className="inp py-2 text-sm w-full" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-[var(--dim)] block mb-1">Daily Joins</label>
+                    <input type="number" value={newPlanMaxJoins} onChange={e => setNewPlanMaxJoins(e.target.value)} className="inp py-2 text-sm w-full" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-[var(--dim)] block mb-1">Daily Msgs</label>
+                    <input type="number" value={newPlanMaxMsgs} onChange={e => setNewPlanMaxMsgs(e.target.value)} className="inp py-2 text-sm w-full" />
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="text-[10px] text-[var(--dim)] block mb-2">Include Rent Accounts (Optional)</label>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {accounts.filter((a: any) => a.is_rent === 1).map((a: any) => (
+                      <label key={a.id} className="flex items-center gap-2 text-xs text-white bg-[var(--bg)] p-2 rounded-lg border border-[var(--border)] cursor-pointer hover:border-[var(--accent2)]">
+                        <input type="checkbox" 
+                          checked={newPlanAccounts.includes(a.id)} 
+                          onChange={e => {
+                            if (e.target.checked) setNewPlanAccounts([...newPlanAccounts, a.id]);
+                            else setNewPlanAccounts(newPlanAccounts.filter(id => id !== a.id));
+                          }} 
+                          className="accent-[var(--accent2)]" 
+                        />
+                        {a.phone}
+                      </label>
+                    ))}
+                    {accounts.filter((a: any) => a.is_rent === 1).length === 0 && (
+                      <div className="text-xs text-[var(--dim)]">No Rent Accounts available.</div>
+                    )}
+                  </div>
+                </div>
+
+                <button onClick={handleCreatePlan} disabled={busy} className="btn btn-primary w-full bg-gradient-to-r from-[var(--accent2)] to-purple-600 text-white font-bold py-3">
+                  {busy ? "Creating..." : "Create Plan"}
+                </button>
+              </div>
+              {/* END CREATE NEW PLAN UI */}
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
                   <div className="min-w-[700px]">
