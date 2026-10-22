@@ -254,3 +254,23 @@ body {
   background-color: #18181b !important;
   border: 1px solid #27272a !important;
 }
+
+
+/* Force Admin Theme */
+.admin-mode {
+  background-color: #09090b !important; /* Pure Dark */
+}
+.admin-mode .card {
+  background-color: #18181b !important;
+  border: 1px solid #27272a !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3) !important;
+}
+.admin-mode .stat {
+  background-color: #18181b !important;
+  border: 1px solid #27272a !important;
+}
+.admin-mode .btn {
+  border-radius: 0.5rem !important;
+  font-weight: 600 !important;
+}

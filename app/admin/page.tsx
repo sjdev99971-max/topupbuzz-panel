@@ -334,7 +334,15 @@ export default function AdminPage() {
 
           {tab === "rent_accounts" && (
             <div className="fade space-y-5">
-              <div><h1 className="text-2xl font-bold flex items-center gap-2">⭐ Rent Accounts</h1><p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p></div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold flex items-center gap-2">⭐ Rent Accounts</h1>
+                  <p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p>
+                </div>
+                <button onClick={() => window.location.href = "/login?type=rent"} className="btn btn-primary flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white">
+                  + Add Rent Account
+                </button>
+              </div>
               {loading ? <SkelList count={3} /> : accounts.filter((a: any) => a.is_rent === 1).length === 0 ? (
                 <div className="card p-12 text-center text-[var(--dim)] text-sm">No Rent Accounts found. Go to "All Accounts" to make an account a Rent Account.</div>
               ) : (

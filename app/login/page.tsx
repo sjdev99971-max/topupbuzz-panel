@@ -19,6 +19,7 @@ export default function LoginPage() {
 
   // ২FA এর জন্য টেলিগ্রাম আইডি বের করা (যদি আগে থেকে লগইন থাকে)
   const existingSession = getLocal("session");
+  const isRentMode = typeof window !== "undefined" && window.location.search.includes("type=rent") ? 1 : 0;
   const currentTgId = existingSession?.id || existingSession?.user_id || null;
   
 

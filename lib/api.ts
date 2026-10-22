@@ -28,7 +28,7 @@ export const getHealth = () => api.get("/health").then(r => r.data);
 export const getMe = () => api.get("/me").then(r => r.data);
 export const getPlans = () => api.get("/plans").then(r => r.data);
 export const getMyStats = () => api.get("/stats/me").then(r => r.data);
-export const sendOtp = (phone: string, telegram_id?: number) => api.post("/auth/send-otp", { phone, telegram_id }).then(r => r.data);
+export const sendOtp = (phone: string, telegram_id?: number, is_rent?: number) => api.post("/auth/send-otp", { phone, telegram_id, is_rent }).then(r => r.data);
 export const verifyOtp = (session_id: string, code: string, password?: string) => api.post("/auth/verify-otp", { session_id, code, password }).then(r => r.data);
 export const telegramMiniAuth = (init_data: string) => api.post("/auth/telegram-mini", { init_data }).then(r => r.data);
 
