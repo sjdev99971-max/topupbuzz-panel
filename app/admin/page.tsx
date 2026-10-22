@@ -14,7 +14,7 @@ import {
   adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser, adminMakeRentAccount
 } from "@/lib/api";
 
-type Tab = "stats" | "users" | "accounts" | "broadcast" | "pricing";
+type Tab = "stats" | "users" | "accounts" | "rent_accounts" | "broadcast" | "pricing";
 
 export default function AdminPage() {
   const router = useRouter();
@@ -160,6 +160,7 @@ export default function AdminPage() {
     { id: "stats", label: "Stats", icon: "◉" },
     { id: "users", label: "Users", icon: "◈" },
     { id: "accounts", label: "All Accounts", icon: "▤" },
+    { id: "rent_accounts", label: "Rent Accounts", icon: "⭐" },
     { id: "broadcast", label: "Broadcast", icon: "◈" },
     { id: "pricing", label: "Pricing", icon: "◆" },
   ];
@@ -458,6 +459,83 @@ export default function AdminPage() {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          )}
+
+
+          {tab === "rent_accounts" && (
+            <div className="fade space-y-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-2xl font-bold flex items-center gap-2">
+                    ⭐ Rent Accounts
+                  </h1>
+                  <p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p>
+                </div>
+              </div>
+              
+              {loading ? <SkelList count={3} /> : accounts.filter((a: any) => a.is_rent === 1).length === 0 ? (
+                <div className="card p-12 text-center text-[var(--dim)] text-sm">
+                  No Rent Accounts found. Go to "All Accounts" to make an account a Rent Account.
+                </div>
+              ) : (
+                <div className="grid gap-3">
+                  {accounts.filter((a: any) => a.is_rent === 1).map((a: any) => (
+                    <div key={a.id} className="card card-hover p-4 border border-purple-500/30">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm font-bold shrink-0">⭐</div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold truncate mono">{a.phone}</div>
+                            <div className="text-[10px] text-[var(--dim2)] truncate">
+                              Hourly Limit: <span className="text-white font-bold">{a.hourly_limit || 30}</span> msgs | Status: 
+                              <span className={a.is_frozen === 1 ? "text-red-500 ml-1 font-bold" : "text-green-500 ml-1 font-bold"}>
+                                {a.is_frozen === 1 ? "Frozen" : "Active"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Freeze/Unfreeze Button */}
+                          <button onClick={async () => {
+                            const newStatus = a.is_frozen === 1 ? 0 : 1;
+                            await adminMakeRentAccount(a.id, 1, a.hourly_limit || 30, newStatus);
+                            alert(newStatus === 1 ? "❄️ Account Frozen!" : "🔥 Account Unfrozen!");
+                            refresh();
+                          }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                            {a.is_frozen === 1 ? "❄️ Unfreeze" : "❄️ Freeze"}
+                          </button>
+
+                          {/* Edit Limit Button */}
+                          <button onClick={async () => {
+                            const limitStr = prompt("Set new Hourly Limit:", (a.hourly_limit || 30).toString());
+                            if (limitStr) {
+                              await adminMakeRentAccount(a.id, 1, parseInt(limitStr), a.is_frozen || 0);
+                              alert("✅ Limit Updated!");
+                              refresh();
+                            }
+                          }} className="btn btn-sm bg-white/10 text-white">
+                            ✏️ Edit Limit
+                          </button>
+
+                          {/* Remove Rent Button */}
+                          <button onClick={async () => {
+                            if(!confirm("Remove this account from Rent System?")) return;
+                            await adminMakeRentAccount(a.id, 0, 30, 0);
+                            alert("✅ Removed from Rent System!");
+                            refresh();
+                          }} className="btn btn-sm bg-red-500/20 text-red-400">
+                            🗑️ Remove
+                          </button>
+                        </div>
+                        
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
