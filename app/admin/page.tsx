@@ -1,6 +1,4 @@
-// RENT_ACCOUNT_FEATURE_V1
 "use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -30,10 +28,12 @@ export default function AdminPage() {
   const [broadcast, setBroadcast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editPlan, setEditPlan] = useState<any>({});
+  const [confirmStealth, setConfirmStealth] = useState<any>(null);
+
+  // Quick Deliver States
   const [quickId, setQuickId] = useState("");
   const [quickPlan, setQuickPlan] = useState("basic");
   const [quickDays, setQuickDays] = useState("30");
-  const [confirmStealth, setConfirmStealth] = useState<any>(null);
 
   useEffect(() => {
     (async () => {
@@ -65,6 +65,7 @@ export default function AdminPage() {
     ];
     const results = await Promise.allSettled(calls.map(c => c[1]));
     const failed: string[] = [];
+    
     results.forEach((r, i) => {
       const name = calls[i][0];
       if (r.status === "fulfilled") {
@@ -73,13 +74,10 @@ export default function AdminPage() {
         if (name === "accounts") setAccounts(r.value);
         if (name === "plans") setPlans(r.value);
       } else {
-        const status = (r.reason as any)?.response?.status || "?";
-        const detail = (r.reason as any)?.response?.data?.detail || (r.reason as any)?.message;
-        failed.push(`${name}[${status}]: ${detail}`);
-        console.error(`❌ admin.${name}:`, status, detail);
+        failed.push(name);
       }
     });
-    if (failed.length > 0) toast(failed.join(" · "), "error");
+    if (failed.length > 0) toast("Failed to load: " + failed.join(", "), "error");
     setLoading(false);
   }, []);
 
@@ -111,12 +109,21 @@ export default function AdminPage() {
     setBusy(true);
     try {
       await adminSetUserPlan(Number(quickId), quickPlan, Number(quickDays));
-      toast(`✅ Successfully delivered ${quickPlan} to ${quickId}`, "success");
-      setQuickId(""); // Clear input
-      refresh(); // Refresh list
-    } catch { 
-      toast("Delivery failed. Check User ID.", "error"); 
-    }
+      toast(`✅ Delivered ${quickPlan} to ${quickId}`, "success");
+      setQuickId(""); refresh();
+    } catch { toast("Delivery failed.", "error"); }
+    setBusy(false);
+  };
+
+  const handleQuickDemote = async () => {
+    if (!quickId.trim()) return toast("Enter User ID", "error");
+    if (!confirm(`Demote user ${quickId} to Unverified?`)) return;
+    setBusy(true);
+    try {
+      await adminDemoteUser(Number(quickId));
+      toast(`✅ User ${quickId} demoted`, "success");
+      setQuickId(""); refresh();
+    } catch { toast("Demotion failed.", "error"); }
     setBusy(false);
   };
 
@@ -142,20 +149,30 @@ export default function AdminPage() {
     setBusy(false);
   };
 
+  const handleMakeRent = async (a: any) => {
+    const isRentStr = prompt("Make this a Rent Account? (Type 1 for Yes, 0 for No)", a.is_rent === 1 ? "1" : "0");
+    if (isRentStr === null) return;
+    const isRent = parseInt(isRentStr);
+    if (isRent !== 0 && isRent !== 1) return alert("Invalid input. Use 0 or 1.");
+    
+    let limit = a.hourly_limit || 30;
+    if (isRent === 1) {
+        const limitStr = prompt("Set Hourly Message Limit (Default 30):", limit.toString());
+        if (limitStr) limit = parseInt(limitStr);
+    }
+    
+    await adminMakeRentAccount(a.id, isRent, limit, a.is_frozen || 0);
+    alert("✅ Rent Account Settings Updated!");
+    refresh();
+  };
+
   if (!ready) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="w-8 h-8 border-2 border-[var(--border2)] border-t-[var(--accent2)] rounded-full spin" />
+    <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+      <div className="w-8 h-8 border-2 border-[var(--border)] border-t-[var(--accent2)] rounded-full spin" />
     </div>
   );
 
-  const filteredUsers = q
-    ? users.filter(u =>
-        String(u.id).includes(q) ||
-        (u.username || "").toLowerCase().includes(q.toLowerCase()) ||
-        (u.first_name || "").toLowerCase().includes(q.toLowerCase())
-      )
-    : users;
-
+  const filteredUsers = q ? users.filter(u => String(u.id).includes(q) || (u.username || "").toLowerCase().includes(q.toLowerCase())) : users;
   const tabs: {id: Tab; label: string; icon: string}[] = [
     { id: "stats", label: "Stats", icon: "◉" },
     { id: "users", label: "Users", icon: "◈" },
@@ -173,20 +190,17 @@ export default function AdminPage() {
   const rate = total ? (success / total) * 100 : 0;
 
   return (
-    <div className="min-h-screen flex flex-col admin-mode">
+    <div className="min-h-screen flex flex-col admin-mode bg-[var(--bg)] text-[var(--text)] font-sans">
       <header className="sticky top-0 z-20 border-b border-white/10 bg-black/60 backdrop-blur-xl shadow-lg shadow-black/50">
         <div className="px-4 md:px-6 h-14 flex items-center justify-between gap-3 max-w-7xl mx-auto w-full">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
+          <Link href="/dashboard" className="flex items-center gap-2.5 text-white">
             <div className="w-7 h-7 rounded-lg bg-[var(--accent2)] flex items-center justify-center text-white text-xs font-bold">♛</div>
             <span className="font-semibold text-[15px]">Admin</span>
-            <span className="text-[10px] text-[var(--accent2)] px-2 py-0.5 rounded-full bg-[var(--accent2)]/10 font-semibold">
-              FULL ACCESS
-            </span>
+            <span className="text-[10px] text-[var(--accent2)] px-2 py-0.5 rounded-full bg-[var(--accent2)]/10 font-semibold">FULL ACCESS</span>
           </Link>
           <div className="flex items-center gap-2">
-            <Link href="/dashboard" className="btn btn-sm">← User Panel</Link>
-            <ThemeToggle />
-            <button onClick={logout} className="btn btn-sm btn-ghost">⏏</button>
+            <Link href="/dashboard" className="btn btn-sm bg-white/10 text-white hover:bg-white/20">← User Panel</Link>
+            <button onClick={logout} className="btn btn-sm btn-ghost text-white">⏏</button>
           </div>
         </div>
       </header>
@@ -202,12 +216,11 @@ export default function AdminPage() {
               </div>
             </div>
             <div className="text-[10px] text-[var(--dim2)] space-y-1 mt-3 pt-3 border-t border-[var(--border)]">
-              <div className="flex justify-between"><span>Users</span><span className="text-[var(--text)]">{c.users || 0}</span></div>
-              <div className="flex justify-between"><span>Accounts</span><span className="text-[var(--text)]">{c.accounts || 0}</span></div>
+              <div className="flex justify-between"><span>Users</span><span className="text-white">{c.users || 0}</span></div>
+              <div className="flex justify-between"><span>Accounts</span><span className="text-white">{c.accounts || 0}</span></div>
               <div className="flex justify-between"><span>Running</span><span className="text-[var(--success)]">{c.running || 0}</span></div>
             </div>
           </div>
-
           <nav className="py-2 flex md:flex-col overflow-x-auto md:overflow-visible">
             {tabs.map(s => (
               <div key={s.id} onClick={() => setTab(s.id)}
@@ -226,74 +239,24 @@ export default function AdminPage() {
                 <h1 className="text-2xl font-bold">System Stats</h1>
                 <p className="text-sm text-[var(--dim)] mt-0.5">Real-time overview</p>
               </div>
-
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <div className="stat">
-                  <div className="stat-label">Total Users</div>
-                  <div className="stat-value">{c.users || 0}</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-label">Total Accounts</div>
-                  <div className="stat-value">{c.accounts || 0}</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-label">Campaigns</div>
-                  <div className="stat-value">{c.campaigns || 0}</div>
-                  <div className="stat-sub text-[var(--success)]">{c.running || 0} running</div>
-                </div>
-                <div className="stat">
-                  <div className="stat-label">Success Rate</div>
-                  <div className="stat-value" style={{ color: rate >= 90 ? "var(--success)" : rate >= 70 ? "var(--warning)" : "var(--danger)" }}>
-                    {rate.toFixed(1)}%
-                  </div>
-                  <div className="stat-sub">{success.toLocaleString()} / {total.toLocaleString()}</div>
-                </div>
+                <div className="stat"><div className="stat-label">Total Users</div><div className="stat-value">{c.users || 0}</div></div>
+                <div className="stat"><div className="stat-label">Total Accounts</div><div className="stat-value">{c.accounts || 0}</div></div>
+                <div className="stat"><div className="stat-label">Campaigns</div><div className="stat-value">{c.campaigns || 0}</div><div className="stat-sub text-[var(--success)]">{c.running || 0} running</div></div>
+                <div className="stat"><div className="stat-label">Success Rate</div><div className="stat-value" style={{ color: rate >= 90 ? "var(--success)" : rate >= 70 ? "var(--warning)" : "var(--danger)" }}>{rate.toFixed(1)}%</div><div className="stat-sub">{success.toLocaleString()} / {total.toLocaleString()}</div></div>
               </div>
-
               <div className="grid grid-cols-2 gap-3">
-                <div className="card p-5">
-                  <div className="stat-label">Messages Sent (Total)</div>
-                  <div className="text-2xl font-bold mt-2">{total.toLocaleString()}</div>
-                </div>
-                <div className="card p-5">
-                  <div className="stat-label">Failed</div>
-                  <div className="text-2xl font-bold mt-2 text-[var(--danger)]">{failed.toLocaleString()}</div>
-                </div>
+                <div className="card p-5"><div className="stat-label">Messages Sent (Total)</div><div className="text-2xl font-bold mt-2">{total.toLocaleString()}</div></div>
+                <div className="card p-5"><div className="stat-label">Failed</div><div className="text-2xl font-bold mt-2 text-[var(--danger)]">{failed.toLocaleString()}</div></div>
               </div>
-
-              {stats?.daily?.length > 0 && (
-                <div className="card p-5">
-                  <div className="flex items-center justify-between mb-5">
-                    <div>
-                      <div className="text-sm font-semibold">Activity</div>
-                      <div className="text-xs text-[var(--dim)]">Last 7 days</div>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-[var(--dim)]">
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-sm bg-[var(--success)]" /> Success
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-sm bg-[var(--danger)]" /> Failed
-                      </span>
-                    </div>
-                  </div>
-                  <ChartBars daily={stats.daily} />
-                </div>
-              )}
-
               {stats?.top_users?.length > 0 && (
                 <div className="card p-5">
                   <div className="text-sm font-semibold mb-4">Top Users by Accounts</div>
                   <div className="space-y-2">
                     {stats.top_users.map((u: any, i: number) => (
                       <div key={u.id} className="flex items-center gap-3 py-2 border-b border-[var(--border)] last:border-0">
-                        <div className="w-6 h-6 rounded-md bg-[var(--surface3)] text-xs flex items-center justify-center text-[var(--dim)] font-semibold">
-                          {i + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm truncate">{u.first_name || u.username || u.id}</div>
-                          <div className="text-[10px] text-[var(--dim2)]">id: {u.id}</div>
-                        </div>
+                        <div className="w-6 h-6 rounded-md bg-[var(--surface3)] text-xs flex items-center justify-center text-[var(--dim)] font-semibold">{i + 1}</div>
+                        <div className="flex-1 min-w-0"><div className="text-sm truncate">{u.first_name || u.username || u.id}</div><div className="text-[10px] text-[var(--dim2)]">id: {u.id}</div></div>
                         <span className={`tag ${u.plan === "unverified" ? "tag-neutral" : "tag-info"}`}>{u.plan}</span>
                         <span className="text-xs text-[var(--dim)]">{u.acc_count} acc</span>
                       </div>
@@ -307,94 +270,30 @@ export default function AdminPage() {
           {tab === "users" && (
             <div className="fade space-y-5">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <div>
-                  <h1 className="text-2xl font-bold">Users</h1>
-                  <p className="text-sm text-[var(--dim)] mt-0.5">{users.length} total</p>
-                </div>
-                <input className="inp text-xs py-2 max-w-[220px]" placeholder="Search id / username…"
-                  value={q} onChange={e => setQ(e.target.value)} />
+                <div><h1 className="text-2xl font-bold">Users</h1><p className="text-sm text-[var(--dim)] mt-0.5">{users.length} total</p></div>
+                <input className="inp text-xs py-2 max-w-[220px]" placeholder="Search id / username…" value={q} onChange={e => setQ(e.target.value)} />
               </div>
-
-              {/* QUICK DELIVER BOX */}
               <div className="card p-4 border border-[var(--accent2)]/30">
-                <div className="text-sm font-semibold mb-3 flex items-center gap-2">
-                  ⚡ Quick Deliver (Fast Upgrade)
-                </div>
+                <div className="text-sm font-semibold mb-3 flex items-center gap-2">⚡ Quick Deliver (Fast Upgrade)</div>
                 <div className="flex flex-wrap items-end gap-3">
-                  <div className="flex-1 min-w-[150px]">
-                    <label className="text-[10px] text-[var(--dim)] mb-1 block">User Telegram ID</label>
-                    <input 
-                      type="number" 
-                      placeholder="e.g. 123456789" 
-                      value={quickId} 
-                      onChange={e => setQuickId(e.target.value)}
-                      className="inp py-2 text-sm w-full" 
-                    />
-                  </div>
-                  <div className="w-[130px]">
-                    <label className="text-[10px] text-[var(--dim)] mb-1 block">Select Plan</label>
-                    <select 
-                      value={quickPlan} 
-                      onChange={e => setQuickPlan(e.target.value)}
-                      className="inp py-2 text-sm w-full"
-                    >
-                      <option value="basic">Basic</option>
-                      <option value="pro">Pro</option>
-                      <option value="max">Max</option>
-                    </select>
-                  </div>
-                  <div className="w-[90px]">
-                    <label className="text-[10px] text-[var(--dim)] mb-1 block">Days</label>
-                    <input 
-                      type="number" 
-                      min="1"
-                      placeholder="30" 
-                      value={quickDays} 
-                      onChange={e => setQuickDays(e.target.value)}
-                      className="inp py-2 text-sm w-full" 
-                    />
-                  </div>
-                  <button 
-                    onClick={handleQuickDeliver} 
-                    disabled={busy}
-                    className="btn py-2 px-6 h-[38px] bg-gradient-to-r from-[var(--accent2)] to-emerald-500 text-white font-bold rounded-xl shadow-lg hover:scale-105 transition-transform"
-                  >
-                    {busy ? "Delivering..." : "Deliver Now"}
-                  </button>
+                  <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-[var(--dim)] mb-1 block">User Telegram ID</label><input type="number" placeholder="e.g. 123456789" value={quickId} onChange={e => setQuickId(e.target.value)} className="inp py-2 text-sm w-full" /></div>
+                  <div className="w-[130px]"><label className="text-[10px] text-[var(--dim)] mb-1 block">Select Plan</label><select value={quickPlan} onChange={e => setQuickPlan(e.target.value)} className="inp py-2 text-sm w-full"><option value="basic">Basic</option><option value="pro">Pro</option><option value="max">Max</option></select></div>
+                  <div className="w-[90px]"><label className="text-[10px] text-[var(--dim)] mb-1 block">Days</label><input type="number" min="1" placeholder="30" value={quickDays} onChange={e => setQuickDays(e.target.value)} className="inp py-2 text-sm w-full" /></div>
+                  <button onClick={handleQuickDeliver} disabled={busy} className="btn py-2 px-6 h-[38px] bg-gradient-to-r from-[var(--accent2)] to-emerald-500 text-white font-bold rounded-xl">{busy ? "..." : "Deliver Now"}</button>
+                  <button onClick={handleQuickDemote} disabled={busy} className="btn py-2 px-4 h-[38px] bg-red-500/10 text-red-500 border border-red-500/30">Demote</button>
                 </div>
               </div>
-
               {loading ? <SkelList count={4} /> : (
                 <div className="card divide-y divide-[var(--border)]">
-                  {(filteredUsers || []).map((u: any) => (
+                  {filteredUsers.map((u: any) => (
                     <div key={u.id} className="p-3 flex items-center gap-3 flex-wrap">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--accent2)] to-emerald-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shrink-0">
-                        {(u.first_name?.[0] || u.username?.[0] || "?").toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">{u.first_name || u.username || "Unknown"}</div>
-                        <div className="text-[10px] text-[var(--dim2)]">id: {u.id}</div>
-                      </div>
-                      <span className={`tag ${u.plan === "unverified" ? "tag-neutral" : u.plan === "max" ? "tag-purple" : "tag-info"}`}>
-                        {u.plan}
-                      </span>
-                      <select
-                        defaultValue={u.plan}
-                        onChange={e => setUserPlan(u.id, e.target.value)}
-                        className="inp py-1 text-xs max-w-[110px]">
-                        <option value="unverified">unverified</option>
-                        <option value="basic">basic</option>
-                        <option value="pro">pro</option>
-                        <option value="max">max</option>
-                      </select>
-                      <button onClick={() => doStealth(u)} className="btn btn-sm btn-icon" title="Stealth">
-                        🕵
-                      </button>
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--accent2)] to-emerald-600 flex items-center justify-center text-xs font-bold text-white shadow-lg shrink-0">{(u.first_name?.[0] || u.username?.[0] || "?").toUpperCase()}</div>
+                      <div className="flex-1 min-w-0"><div className="text-sm font-medium truncate">{u.first_name || u.username || "Unknown"}</div><div className="text-[10px] text-[var(--dim2)]">id: {u.id}</div></div>
+                      <span className={`tag ${u.plan === "unverified" ? "tag-neutral" : u.plan === "max" ? "tag-purple" : "tag-info"}`}>{u.plan}</span>
+                      <select defaultValue={u.plan} onChange={e => setUserPlan(u.id, e.target.value)} className="inp py-1 text-xs max-w-[110px]"><option value="unverified">unverified</option><option value="basic">basic</option><option value="pro">pro</option><option value="max">max</option></select>
+                      <button onClick={() => doStealth(u)} className="btn btn-sm btn-icon bg-white/5">🕵</button>
                     </div>
                   ))}
-                  {filteredUsers.length === 0 && (
-                    <div className="p-8 text-center text-xs text-[var(--dim2)]">No users found</div>
-                  )}
                 </div>
               )}
             </div>
@@ -402,58 +301,27 @@ export default function AdminPage() {
 
           {tab === "accounts" && (
             <div className="fade space-y-5">
-              <div>
-                <h1 className="text-2xl font-bold">All Accounts</h1>
-                <p className="text-sm text-[var(--dim)] mt-0.5">{accounts.length} accounts across system</p>
-              </div>
-
+              <div><h1 className="text-2xl font-bold">All Accounts</h1><p className="text-sm text-[var(--dim)] mt-0.5">{accounts.length} accounts across system</p></div>
               {loading ? <SkelList count={4} /> : accounts.length === 0 ? (
                 <div className="card p-12 text-center text-[var(--dim)] text-sm">No accounts</div>
               ) : (
                 <div className="grid gap-3">
-                  {(accounts || []).map((a: any) => {
+                  {accounts.map((a: any) => {
                     const owner = users.find(u => u.id === a.user_id);
                     return (
-                      <div key={a.id} className="card card-hover p-4">
+                      <div key={a.id} className="card p-4">
                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className="w-10 h-10 rounded-lg bg-[var(--surface3)] flex items-center justify-center text-[var(--accent)] text-sm font-bold shrink-0">▤</div>
                             <div className="min-w-0">
                               <div className="text-sm font-semibold truncate mono">{a.phone}</div>
-                              <div className="text-[10px] text-[var(--dim2)] truncate">
-                                {owner ? `Owner: ${owner.username || owner.first_name || owner.id}` : `user_id: ${a.user_id}`}
-                              </div>
+                              <div className="text-[10px] text-[var(--dim2)] truncate">{owner ? `Owner: ${owner.username || owner.first_name || owner.id}` : `user_id: ${a.user_id}`}</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`tag ${a.health === "Safe" ? "tag-ok" : "tag-warn"}`}>{a.health}</span>
-                            
-                            {/* Rent Manager Button */}
-                            <button onClick={async () => {
-                                const isRentStr = prompt("Make this a Rent Account? (Type 1 for Yes, 0 for No)", a.is_rent === 1 ? "1" : "0");
-                                if (isRentStr === null) return;
-                                const isRent = parseInt(isRentStr);
-                                if (isRent !== 0 && isRent !== 1) return alert("Invalid input. Use 0 or 1.");
-                                
-                                let limit = a.hourly_limit || 30;
-                                if (isRent === 1) {
-                                    const limitStr = prompt("Set Hourly Message Limit (Default 30):", limit.toString());
-                                    if (limitStr) limit = parseInt(limitStr);
-                                }
-                                
-                                await adminMakeRentAccount(a.id, isRent, limit);
-                                alert("✅ Rent Account Settings Updated!");
-                                refresh();
-                            }} className={`btn btn-sm ${a.is_rent === 1 ? 'bg-purple-600 text-white' : 'btn-ghost'}`}>
-                                {a.is_rent === 1 ? "⭐ Managed (Rent)" : "Make Rent Account"}
-                            </button>
-
-                            <Link href={`/dashboard/accounts/${a.id}`} className="btn btn-sm">View</Link>
-                            {owner && (
-                              <button onClick={() => doStealth(owner)} className="btn btn-sm btn-icon" title="Stealth as owner">
-                                🕵
-                              </button>
-                            )}
+                            <button onClick={() => handleMakeRent(a)} className={`btn btn-sm ${a.is_rent === 1 ? 'bg-purple-600 text-white' : 'bg-white/10 text-white'}`}>{a.is_rent === 1 ? "⭐ Managed" : "Make Rent"}</button>
+                            <button onClick={() => doStealth(users.find(u => u.id === a.user_id))} className="btn btn-sm bg-white/5">🕵</button>
                           </div>
                         </div>
                       </div>
@@ -464,24 +332,15 @@ export default function AdminPage() {
             </div>
           )}
 
-
           {tab === "rent_accounts" && (
             <div className="fade space-y-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2 text-[var(--text)]">⭐ Rent Accounts Manager</h1>
-                  <p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p>
-                </div>
-              </div>
-              
+              <div><h1 className="text-2xl font-bold flex items-center gap-2">⭐ Rent Accounts</h1><p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p></div>
               {loading ? <SkelList count={3} /> : accounts.filter((a: any) => a.is_rent === 1).length === 0 ? (
-                <div className="card p-12 text-center text-[var(--dim)] text-sm bg-[var(--surface)] border border-[var(--border)]">
-                  No Rent Accounts found. Go to "All Accounts" to make an account a Rent Account.
-                </div>
+                <div className="card p-12 text-center text-[var(--dim)] text-sm">No Rent Accounts found. Go to "All Accounts" to make an account a Rent Account.</div>
               ) : (
                 <div className="grid gap-4">
                   {accounts.filter((a: any) => a.is_rent === 1).map((a: any) => (
-                    <div key={a.id} className="card p-5 border border-[var(--accent2)]/30 bg-[var(--surface)] relative overflow-hidden">
+                    <div key={a.id} className="card p-5 border border-[var(--accent2)]/30 relative overflow-hidden">
                       <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--accent2)] to-purple-500"></div>
                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mt-2">
                         <div className="flex items-center gap-4 min-w-0 flex-1">
@@ -499,7 +358,7 @@ export default function AdminPage() {
                           <button onClick={async () => {
                             const newStatus = a.is_frozen === 1 ? 0 : 1;
                             await adminMakeRentAccount(a.id, 1, a.hourly_limit || 30, newStatus);
-                            alert(newStatus === 1 ? "❄️ Account Frozen!" : "🔥 Account Unfrozen!");
+                            alert(newStatus === 1 ? "❄️ Frozen!" : "🔥 Unfrozen!");
                             refresh();
                           }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500 text-white' : 'bg-[var(--surface3)] text-[var(--text)]'}`}>
                             {a.is_frozen === 1 ? "❄️ Unfreeze" : "❄️ Freeze"}
@@ -508,12 +367,11 @@ export default function AdminPage() {
                             const limitStr = prompt("Set new Hourly Limit:", (a.hourly_limit || 30).toString());
                             if (limitStr) {
                               await adminMakeRentAccount(a.id, 1, parseInt(limitStr), a.is_frozen || 0);
-                              alert("✅ Limit Updated!");
-                              refresh();
+                              alert("✅ Limit Updated!"); refresh();
                             }
                           }} className="btn btn-sm bg-[var(--surface3)] text-[var(--text)]">✏️ Edit Limit</button>
                           <button onClick={async () => {
-                            if(!confirm("Remove this account from Rent System?")) return;
+                            if(!confirm("Remove from Rent System?")) return;
                             await adminMakeRentAccount(a.id, 0, 30, 0);
                             alert("✅ Removed!"); refresh();
                           }} className="btn btn-sm bg-red-500/10 text-red-500 border border-red-500/30">🗑️ Remove</button>
@@ -525,74 +383,53 @@ export default function AdminPage() {
               )}
             </div>
           )}
+
+          {tab === "broadcast" && (
+            <div className="fade space-y-5 max-w-2xl">
+              <div><h1 className="text-2xl font-bold">Broadcast</h1><p className="text-sm text-[var(--dim)] mt-0.5">Send a Telegram message to all {c.users || 0} users</p></div>
+              <div className="card p-5">
+                <div className="text-xs font-semibold uppercase tracking-wider text-[var(--dim)] mb-3">Message</div>
+                <textarea className="inp min-h-[140px] resize-none" placeholder="Type your message here…" value={broadcast} onChange={e => setBroadcast(e.target.value)} />
+                <div className="flex items-center justify-between mt-4">
+                  <div className="text-[11px] text-[var(--dim2)]">{broadcast.length} chars</div>
+                  <button onClick={sendBroadcast} disabled={busy || !broadcast.trim()} className="btn btn-primary">{busy ? "Sending…" : "Send to all users"}</button>
                 </div>
-              )}
+              </div>
+              <div className="card p-4 bg-[var(--warning)]/5 border-[var(--warning)]/30"><div className="text-xs text-[var(--warning)]">⚠ Rate limit: ~0.1s per user.</div></div>
             </div>
           )}
-                </div>
-              )}
-            </div>
-          )}
-                      className="inp py-1 text-xs" />
-                    <input type="number" defaultValue={p.days}
-                      onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), days: +e.target.value}})}
-                      className="inp py-1 text-xs" />
-                    <input type="number" defaultValue={p.max_accounts}
-                      onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_accounts: +e.target.value}})}
-                      className="inp py-1 text-xs" />
-                    <input type="number" defaultValue={p.max_daily_joins}
-                      onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_daily_joins: +e.target.value}})}
-                      className="inp py-1 text-xs" />
-                    <input type="number" defaultValue={p.max_daily_messages}
-                      onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_daily_messages: +e.target.value}})}
-                      className="inp py-1 text-xs" />
-                    <button onClick={() => savePlan(editPlan[p.name] || p)} disabled={busy}
-                      className="btn btn-primary btn-sm">Save</button>
+
+          {tab === "pricing" && (
+            <div className="fade space-y-5">
+              <div><h1 className="text-2xl font-bold">Plan Pricing</h1><p className="text-sm text-[var(--dim)] mt-0.5">Configure limits & prices</p></div>
+              <div className="card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <div className="min-w-[700px]">
+                    <div className="grid grid-cols-7 gap-3 p-3 bg-[var(--surface2)] text-[11px] font-semibold uppercase tracking-wider text-[var(--dim)]">
+                      <span>Plan</span><span>Price ৳</span><span>Days</span><span>Accounts</span><span>Joins/d</span><span>Msgs/d</span><span></span>
+                    </div>
+                    {plans.map((p: any) => (
+                      <div key={p.name} className="grid grid-cols-7 gap-3 p-3 items-center border-t border-[var(--border)]">
+                        <span className="text-sm font-semibold uppercase text-[var(--accent2)]">{p.name}</span>
+                        <input type="number" defaultValue={p.price} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), price: +e.target.value}})} className="inp py-1 text-xs" />
+                        <input type="number" defaultValue={p.days} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), days: +e.target.value}})} className="inp py-1 text-xs" />
+                        <input type="number" defaultValue={p.max_accounts} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_accounts: +e.target.value}})} className="inp py-1 text-xs" />
+                        <input type="number" defaultValue={p.max_daily_joins} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_daily_joins: +e.target.value}})} className="inp py-1 text-xs" />
+                        <input type="number" defaultValue={p.max_daily_messages} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_daily_messages: +e.target.value}})} className="inp py-1 text-xs" />
+                        <button onClick={() => savePlan(editPlan[p.name] || p)} disabled={busy} className="btn btn-primary btn-sm">Save</button>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           )}
         </main>
       </div>
-
       <footer className="border-t border-[var(--border)] px-4 md:px-6 py-3 text-[11px] text-[var(--dim2)] flex justify-between max-w-7xl mx-auto w-full">
-        <span>topupbuzz // admin</span>
-        <a href={`https://t.me/${SUPPORT_USER.replace("@","")}`} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--accent2)]">
-          {SUPPORT_USER}
-        </a>
+        <span>topupbuzz // admin</span><a href={`https://t.me/${SUPPORT_USER.replace("@","")}`} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--accent2)]">{SUPPORT_USER}</a>
       </footer>
-
-      <ConfirmDialog
-        open={!!confirmStealth}
-        title="Enter stealth mode?"
-        message={`View the panel as ${confirmStealth?.first_name || confirmStealth?.username || confirmStealth?.id}? You'll see their accounts and campaigns.`}
-        onCancel={() => setConfirmStealth(null)}
-        onConfirm={confirmStealthAction}
-      />
-    </div>
-  );
-}
-
-function ChartBars({ daily }: any) {
-  const max = Math.max(1, ...daily.map((d: any) => (Number(d.success)||0) + (Number(d.failed)||0)));
-  return (
-    <div className="chart-bars">
-      {daily.map((d: any, i: number) => {
-        const s = Number(d.success) || 0;
-        const f = Number(d.failed) || 0;
-        const sH = (s / max) * 100;
-        const fH = (f / max) * 100;
-        return (
-          <div key={i} className="chart-bar-wrap">
-            <div className="chart-bar-track">
-              {f > 0 && <div className="chart-bar chart-bar-err" style={{ height: `${fH}%` }} />}
-              {s > 0 && <div className="chart-bar chart-bar-ok" style={{ height: `${sH}%` }} />}
-            </div>
-            <div className="chart-bar-label">{String(d.day).slice(5)}</div>
-          </div>
-        );
-      })}
+      <ConfirmDialog open={!!confirmStealth} title="Enter stealth mode?" message={`View as ${confirmStealth?.first_name || confirmStealth?.username || confirmStealth?.id}?`} onCancel={() => setConfirmStealth(null)} onConfirm={confirmStealthAction} />
     </div>
   );
 }
