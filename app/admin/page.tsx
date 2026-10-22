@@ -476,7 +476,15 @@ export default function AdminPage() {
                   </div>
                   <div>
                     <label className="text-[10px] text-[var(--dim)] block mb-1">Max Accounts</label>
-                    <input type="number" value={newPlanMaxAcc} onChange={e => setNewPlanMaxAcc(e.target.value)} className="inp py-2 text-sm w-full" />
+                    <input type="number" value={newPlanMaxAcc} onChange={e => {
+                    const val = e.target.value;
+                    setNewPlanMaxAcc(val);
+                    // যদি নতুন লিমিটের চেয়ে বেশি অ্যাকাউন্ট সিলেক্ট করা থাকে, তবে এক্সট্রা সিলেকশন মুছে ফেলা
+                    const limit = Number(val) || 1;
+                    if (newPlanAccounts.length > limit) {
+                      setNewPlanAccounts(newPlanAccounts.slice(0, limit));
+                    }
+                  }} className="inp py-2 text-sm w-full" />
                   </div>
                   <div>
                     <label className="text-[10px] text-[var(--dim)] block mb-1">Daily Joins</label>
@@ -495,11 +503,19 @@ export default function AdminPage() {
                       <label key={a.id} className="flex items-center gap-2 text-xs text-white bg-[var(--bg)] p-2 rounded-lg border border-[var(--border)] cursor-pointer hover:border-[var(--accent2)]">
                         <input type="checkbox" 
                           checked={newPlanAccounts.includes(a.id)} 
+                          disabled={newPlanAccounts.length >= Number(newPlanMaxAcc) && !newPlanAccounts.includes(a.id)}
                           onChange={e => {
-                            if (e.target.checked) setNewPlanAccounts([...newPlanAccounts, a.id]);
-                            else setNewPlanAccounts(newPlanAccounts.filter(id => id !== a.id));
+                            if (e.target.checked) {
+                              if (newPlanAccounts.length >= Number(newPlanMaxAcc)) {
+                                alert(`You can only select up to ${newPlanMaxAcc} accounts based on Max Accounts limit.`);
+                                return;
+                              }
+                              setNewPlanAccounts([...newPlanAccounts, a.id]);
+                            } else {
+                              setNewPlanAccounts(newPlanAccounts.filter(id => id !== a.id));
+                            }
                           }} 
-                          className="accent-[var(--accent2)]" 
+                          className="accent-[var(--accent2)] disabled:opacity-50" 
                         />
                         {a.phone}
                       </label>

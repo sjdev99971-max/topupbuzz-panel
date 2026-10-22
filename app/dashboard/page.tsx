@@ -1405,7 +1405,7 @@ function MeTab({ me }: any) {
             {plans.map((p: any) => {
               const isCurrent = p.name === currentPlan;
               return (
-                <div key={p.name} className={`bg-[#111] border rounded-2xl p-5 flex flex-col gap-2 ${isCurrent ? 'border-[var(--accent)]' : 'border-white/10'}`}>
+                <div key={p.name} className={`bg-[#111] border rounded-2xl p-5 flex flex-col gap-2 relative overflow-hidden ${isCurrent ? 'border-[var(--accent)]' : 'border-white/10'}`}>
                   <div className="flex justify-between items-center">
                     <div className="text-white font-bold text-lg capitalize">{p.name}</div>
                     <div className="text-[var(--accent)] font-bold">৳{p.price} <span className="text-xs text-white/50 font-normal">/ {p.days} Days</span></div>
