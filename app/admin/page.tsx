@@ -529,6 +529,10 @@ export default function AdminPage() {
               )}
             </div>
           )}
+                </div>
+              )}
+            </div>
+          )}
                       className="inp py-1 text-xs" />
                     <input type="number" defaultValue={p.days}
                       onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), days: +e.target.value}})}
