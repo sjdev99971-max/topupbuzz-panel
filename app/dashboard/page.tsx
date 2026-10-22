@@ -1414,6 +1414,22 @@ function MeTab({ me }: any) {
                     <div className="bg-black/40 p-2 rounded-lg">Accounts: <span className="text-white font-bold">{p.max_accounts}</span></div>
                     <div className="bg-black/40 p-2 rounded-lg">Daily Msgs: <span className="text-white font-bold">{p.max_daily_messages}</span></div>
                   </div>
+                  
+                  {/* Included Rent Accounts Display */}
+                  {(() => {
+                    let inc = p.included_accounts;
+                    if (typeof inc === 'string') {
+                      try { inc = JSON.parse(inc); } catch(e) { inc = []; }
+                    }
+                    if (Array.isArray(inc) && inc.length > 0) {
+                      return (
+                        <div className="mt-2 bg-[var(--accent)]/10 border border-[var(--accent)]/30 p-2 rounded-lg flex items-center justify-between">
+                          <span className="text-xs text-[var(--accent)] font-bold">🎁 Includes {inc.length} Telegram Account(s)</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                   <button disabled={isCurrent} onClick={() => handleBuyPlan(p)} className={`w-full mt-3 py-3 rounded-xl font-bold text-sm ${isCurrent ? 'bg-white/10 text-white/50' : 'bg-[var(--accent)] text-black active:scale-95 transition-transform'}`}>
                     {isCurrent ? "Current Plan" : "Buy Plan (Contact Admin)"}
                   </button>
