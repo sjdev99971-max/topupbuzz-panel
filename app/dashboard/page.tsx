@@ -1422,9 +1422,20 @@ function MeTab({ me }: any) {
                       try { inc = JSON.parse(inc); } catch(e) { inc = []; }
                     }
                     if (Array.isArray(inc) && inc.length > 0) {
+                      const durationText = p.days > 0 ? `${p.days} Days` : "Lifetime";
                       return (
-                        <div className="mt-2 bg-[var(--accent)]/10 border border-[var(--accent)]/30 p-2 rounded-lg flex items-center justify-between">
-                          <span className="text-xs text-[var(--accent)] font-bold">🎁 Includes {inc.length} Telegram Account(s)</span>
+                        <div className="mt-2 bg-[var(--accent)]/10 border border-[var(--accent)]/30 p-3 rounded-xl flex flex-col gap-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-[var(--accent)] font-bold flex items-center gap-1">
+                              🎁 Included Account{inc.length > 1 ? 's' : ''}: <span className="text-white">{inc.length} {inc.length > 1 ? 'Accounts' : 'Account'}</span>
+                            </span>
+                            <span className="text-[10px] bg-[var(--accent)] text-black px-2 py-0.5 rounded-md font-bold">
+                              {inc.length} / Month
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-white/50 mt-1">
+                            You will get {inc.length} ready-to-use Telegram account(s) for {durationText}.
+                          </div>
                         </div>
                       );
                     }
