@@ -149,3 +149,5 @@ export const deleteSavedPost = (id: number) => api.delete(`/saved-posts/${id}`).
 export const broadcastLastPost = (payload: any) => api.post('/broadcast-last-post', payload).then(r => r.data);
 
 export const adminMakeRentAccount = (acc_id: string, is_rent: number, hourly_limit: number, is_frozen?: number) => api.post("/admin/make-rent", { acc_id, is_rent, hourly_limit, is_frozen }).then(r => r.data);
+
+export const getRentedAccounts = () => api.get('/rented-accounts').then(r => r.data);

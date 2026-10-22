@@ -9,7 +9,7 @@ import {
   CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn, LogOut, Clock, Zap, HelpCircle, X 
 } from "lucide-react";
 import { 
-  getMe, getAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
+  getMe, getAccounts, getRentedAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
   getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, broadcastLastPost, getSavedPosts, createSavedPost, getPlans, 
   createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder, updateSettings, startCampaign, stopCampaign, deleteSavedPost 
 } from "@/lib/api";
@@ -30,6 +30,7 @@ export default function Dashboard() {
   const [tab, setTab] = useState<Tab>("home");
   const [me, setMe] = useState<any>(null);
   const [accounts, setAccounts] = useState<any[]>([]);
+  const [rentedAccounts, setRentedAccounts] = useState<any[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [folders, setFolders] = useState<any[]>([]);
   const [campaignStats, setCampaignStats] = useState({ activeSchedules: 0, totalGroups: 0 });
@@ -64,8 +65,8 @@ export default function Dashboard() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [accs, sts, flds, m] = await Promise.all([
-        getAccounts().catch(() => []), getMyStats().catch(() => null),
+      const [accs, r_accs, sts, flds, m] = await Promise.all([
+        getAccounts().catch(() => []), getRentedAccounts().catch(() => []), getMyStats().catch(() => null),
         getFolders().catch(() => []), getMe().catch(() => null)
       ]);
       
@@ -75,7 +76,7 @@ export default function Dashboard() {
         const isStealth = typeof window !== "undefined" && localStorage.getItem("stealth_id");
         if (!isStealth) saveLocal("session", m); 
       }
-      setAccounts(accs); setStats(sts); setFolders(flds);
+      setAccounts(accs); setRentedAccounts(r_accs); setStats(sts); setFolders(flds);
 
       let active = 0, groups = 0;
       for (const acc of accs) {
@@ -132,7 +133,7 @@ export default function Dashboard() {
 
       {tab === "home" && <HomeTab stats={stats} campaignStats={campaignStats} folders={folders} accounts={accounts} loading={loading} setTab={setTab} onRefresh={loadData} />}
       {tab === "library" && <LibraryTab setTab={setTab} accounts={accounts} onRefresh={loadData} />}
-      {tab === "broadcast" && <BroadcastTab accounts={accounts} folders={folders} />}
+      {tab === "broadcast" && <BroadcastTab accounts={accounts} rentedAccounts={rentedAccounts} folders={folders} />}
       {tab === "chats" && <ChatsTab accounts={accounts} />}
       {tab === "me" && <MeTab me={me} />}
 
@@ -429,6 +430,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
           <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => loadGroups(e.target.value)}>
             <option value="">-- Choose Account --</option>
             {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
           </select>
           {loadingDlgs && <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-3"><Loader2 size={14} className="animate-spin" /> Fetching...</div>}        
         </div>
@@ -490,7 +492,7 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
   );
 }
 
-function BroadcastTab({ accounts, folders }: any) {
+function BroadcastTab({ accounts, rentedAccounts, folders }: any) {
   const [mode, setMode] = useState<"list" | "write" | "link" | "saved" | "send_now" | "history" | "channel_id">("list");
   const [content, setContent] = useState("");
   const [title, setTitle] = useState("");
@@ -745,6 +747,7 @@ function BroadcastTab({ accounts, folders }: any) {
           <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => { setSelectedAcc(e.target.value); loadHistory(e.target.value); }}>
             <option value="">-- Choose Account --</option>
             {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
           </select>
         </div>
         {loadingLogs ? (
@@ -798,6 +801,7 @@ function BroadcastTab({ accounts, folders }: any) {
             <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => setSelectedAcc(e.target.value)}>
               <option value="">-- Choose Account --</option>
               {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
             </select>
           </div>
           
@@ -873,6 +877,8 @@ if (mode === "send_now") {
               <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => setSelectedAcc(e.target.value)}>
                 <option value="">-- Choose Account --</option>
                 {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
               </select>
             </div>
 
@@ -944,6 +950,7 @@ function ChatsTab({ accounts }: any) {
         <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => loadChats(e.target.value)}>
           <option value="">-- Choose Account --</option>
           {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
         </select>
         
         <button onClick={handleSpamBot} disabled={!selectedAcc || botChecking} className="w-full bg-red-500/10 text-red-500 border border-red-500/30 py-2 rounded-xl text-sm font-bold flex justify-center items-center gap-2">
