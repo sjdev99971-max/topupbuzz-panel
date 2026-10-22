@@ -131,10 +131,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {tab === "home" && <HomeTab stats={stats} campaignStats={campaignStats} folders={folders} accounts={accounts} loading={loading} setTab={setTab} onRefresh={loadData} />}
-      {tab === "library" && <LibraryTab setTab={setTab} accounts={accounts} onRefresh={loadData} />}
+      {tab === "home" && <HomeTab stats={stats} campaignStats={campaignStats} folders={folders} accounts={accounts} rentedAccounts={rentedAccounts} loading={loading} setTab={setTab} onRefresh={loadData} />}
+      {tab === "library" && <LibraryTab setTab={setTab} accounts={accounts} rentedAccounts={rentedAccounts} onRefresh={loadData} />}
       {tab === "broadcast" && <BroadcastTab accounts={accounts} rentedAccounts={rentedAccounts} folders={folders} />}
-      {tab === "chats" && <ChatsTab accounts={accounts} />}
+      {tab === "chats" && <ChatsTab accounts={accounts} rentedAccounts={rentedAccounts} />}
       {tab === "me" && <MeTab me={me} />}
 
       {/* Floating Bottom Menu Card */}
@@ -164,7 +164,7 @@ export default function Dashboard() {
   );
 }
 
-function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onRefresh }: any) {
+function HomeTab({ stats, campaignStats, folders, accounts, rentedAccounts, loading, setTab, onRefresh }: any) {
   const router = useRouter();
   const t = stats?.totals || {};
   
@@ -251,7 +251,7 @@ function HomeTab({ stats, campaignStats, folders, accounts, loading, setTab, onR
     </div>
   );
 }
-function LibraryTab({ setTab, accounts, onRefresh }: any) {
+function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
   const [view, setView] = useState<"menu" | "folders" | "settings" | "schedules">("menu");
   
   // Folder States
@@ -910,7 +910,7 @@ if (mode === "send_now") {
   return null;
 }
 
-function ChatsTab({ accounts }: any) {
+function ChatsTab({ accounts, rentedAccounts }: any) {
   const [selectedAcc, setSelectedAcc] = useState("");
   const [channelId, setChannelId] = useState("");
   const [savedChannels, setSavedChannels] = useState<any[]>([]);
