@@ -152,5 +152,8 @@ export const adminMakeRentAccount = (acc_id: string, is_rent: number, hourly_lim
 
 export const getRentedAccounts = () => api.get('/rented-accounts').then(r => r.data);
 
+
+
+
 export const getAccountSettings = (id: string) => api.get(`/accounts/${id}/settings`).then(r => r.data);
 export const saveAccountSettings = (id: string, payload: any) => api.post(`/accounts/${id}/settings`, payload).then(r => r.data);

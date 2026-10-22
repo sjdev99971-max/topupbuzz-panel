@@ -1,17 +1,75 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
-  Home, Layers, Send, MessageCircle, User, TrendingUp, CalendarClock, 
-  Folder, FileText, Settings, ShieldAlert, ChevronRight, PenTool, Link as LinkIcon, 
-  CheckCircle2, Loader2, Plus, Download, Upload, Users, Crown, BookOpen, Sparkles, Gift, Headphones, LogIn, LogOut, Clock, Zap, HelpCircle, X 
+  Home,
+  Layers,
+  Send,
+  MessageCircle,
+  User,
+  TrendingUp,
+  CalendarClock,
+  Folder,
+  FileText,
+  Settings,
+  ShieldAlert,
+  ChevronRight,
+  PenTool,
+  Link as LinkIcon,
+  CheckCircle2,
+  Loader2,
+  Plus,
+  Download,
+  Upload,
+  Users,
+  Crown,
+  BookOpen,
+  Sparkles,
+  Gift,
+  Headphones,
+  LogIn,
+  LogOut,
+  Clock,
+  Zap,
+  HelpCircle,
+  X 
 } from "lucide-react";
 import { 
-  getMe, getAccounts, getRentedAccounts, getMyStats, getFolders, getCampaign, getLocal, saveLocal, clearLocal, 
-  getTelegramWebApp, telegramMiniAuth, refreshDialogs, broadcastNow, broadcastLastPost, getSavedPosts, createSavedPost, getPlans, 
-  createFolder, joinMissingGroups, downloadFolderFile, checkSpamBot, getLogs, deleteAccount, updateFolder, updateSettings, startCampaign, stopCampaign, deleteSavedPost 
+  getMe,
+  getAccounts,
+  getRentedAccounts,
+  getMyStats,
+  getFolders,
+  getCampaign,
+  getLocal,
+  saveLocal,
+  clearLocal,
+  getTelegramWebApp,
+  telegramMiniAuth,
+  refreshDialogs,
+  broadcastNow,
+  broadcastLastPost,
+  getSavedPosts,
+  createSavedPost,
+  getPlans,
+  createFolder,
+  joinMissingGroups,
+  downloadFolderFile,
+  checkSpamBot,
+  getLogs,
+  deleteAccount,
+  updateFolder,
+  updateSettings,
+  startCampaign,
+  stopCampaign,
+  deleteSavedPost,
+  getAccountSettings,
+  saveAccountSettings
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
