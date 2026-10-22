@@ -490,11 +490,16 @@ export default function AdminPage() {
                           <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm font-bold shrink-0">⭐</div>
                           <div className="min-w-0">
                             <div className="text-sm font-semibold truncate mono">{a.phone}</div>
-                            <div className="text-[10px] text-[var(--dim2)] truncate">
-                              Hourly Limit: <span className="text-white font-bold">{a.hourly_limit || 30}</span> msgs | Status: 
-                              <span className={a.is_frozen === 1 ? "text-red-500 ml-1 font-bold" : "text-green-500 ml-1 font-bold"}>
-                                {a.is_frozen === 1 ? "Frozen" : "Active"}
-                              </span>
+                            <div className="text-[10px] text-[var(--dim2)] truncate flex flex-col gap-1 mt-1">
+                              <div>
+                                Hourly Limit: <span className="text-white font-bold">{a.hourly_limit || 30}</span> msgs | Status: 
+                                <span className={a.is_frozen === 1 ? "text-red-500 ml-1 font-bold" : "text-green-500 ml-1 font-bold"}>
+                                  {a.is_frozen === 1 ? "Frozen" : "Active"}
+                                </span>
+                              </div>
+                              <div>
+                                Usage: {a.user_id ? <span className="text-orange-400 font-bold">In Use (User: {a.user_id})</span> : <span className="text-gray-400 font-bold">Unused (Available)</span>}
+                              </div>
                             </div>
                           </div>
                         </div>
