@@ -469,53 +469,58 @@ export default function AdminPage() {
             <div className="fade space-y-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold flex items-center gap-2">
-                    ⭐ Rent Accounts
+                  <h1 className="text-2xl font-bold flex items-center gap-2 text-[var(--text)]">
+                    ⭐ Rent Accounts Manager
                   </h1>
                   <p className="text-sm text-[var(--dim)] mt-0.5">Manage accounts assigned to users</p>
                 </div>
               </div>
               
               {loading ? <SkelList count={3} /> : accounts.filter((a: any) => a.is_rent === 1).length === 0 ? (
-                <div className="card p-12 text-center text-[var(--dim)] text-sm">
+                <div className="card p-12 text-center text-[var(--dim)] text-sm bg-[var(--surface)] border border-[var(--border)]">
                   No Rent Accounts found. Go to "All Accounts" to make an account a Rent Account.
                 </div>
               ) : (
-                <div className="grid gap-3">
+                <div className="grid gap-4">
                   {accounts.filter((a: any) => a.is_rent === 1).map((a: any) => (
-                    <div key={a.id} className="card card-hover p-4 border border-purple-500/30">
-                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div key={a.id} className="card p-5 border border-[var(--accent2)]/30 bg-[var(--surface)] shadow-lg relative overflow-hidden">
+                      {/* Top decorative bar */}
+                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--accent2)] to-purple-500"></div>
+                      
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-5 mt-2">
                         
-                        <div className="flex items-center gap-3 min-w-0 flex-1">
-                          <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center text-purple-400 text-sm font-bold shrink-0">⭐</div>
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[var(--accent2)]/20 to-purple-500/20 flex items-center justify-center text-[var(--accent2)] text-xl font-bold shrink-0 border border-[var(--accent2)]/30">
+                            ⭐
+                          </div>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold truncate mono">{a.phone}</div>
-                            <div className="text-[10px] text-[var(--dim2)] truncate flex flex-col gap-1 mt-1">
-                              <div>
-                                Hourly Limit: <span className="text-white font-bold">{a.hourly_limit || 30}</span> msgs | Status: 
-                                <span className={a.is_frozen === 1 ? "text-red-500 ml-1 font-bold" : "text-green-500 ml-1 font-bold"}>
-                                  {a.is_frozen === 1 ? "Frozen" : "Active"}
-                                </span>
-                              </div>
-                              <div>
-                                Usage: {a.user_id ? <span className="text-orange-400 font-bold">In Use (User: {a.user_id})</span> : <span className="text-gray-400 font-bold">Unused (Available)</span>}
-                              </div>
+                            <div className="text-base font-bold text-[var(--text)] truncate flex items-center gap-2">
+                              {a.phone}
+                            </div>
+                            <div className="text-xs text-[var(--dim2)] mt-1.5 flex flex-wrap items-center gap-3">
+                              <span className="bg-[var(--bg)] px-2 py-1 rounded-md border border-[var(--border)]">
+                                Limit: <span className="text-white font-bold">{a.hourly_limit || 30} msgs/h</span>
+                              </span>
+                              <span className={`px-2 py-1 rounded-md border font-bold ${a.is_frozen === 1 ? "bg-red-500/10 text-red-500 border-red-500/30" : "bg-green-500/10 text-green-500 border-green-500/30"}`}>
+                                {a.is_frozen === 1 ? "❄️ Frozen" : "🔥 Active"}
+                              </span>
+                              <span className={`px-2 py-1 rounded-md border font-bold ${a.user_id ? "bg-orange-500/10 text-orange-400 border-orange-500/30" : "bg-gray-500/10 text-gray-400 border-gray-500/30"}`}>
+                                {a.user_id ? `In Use (User: ${a.user_id})` : "Unused (Available)"}
+                              </span>
                             </div>
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {/* Freeze/Unfreeze Button */}
+                        <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <button onClick={async () => {
                             const newStatus = a.is_frozen === 1 ? 0 : 1;
                             await adminMakeRentAccount(a.id, 1, a.hourly_limit || 30, newStatus);
                             alert(newStatus === 1 ? "❄️ Account Frozen!" : "🔥 Account Unfrozen!");
                             refresh();
-                          }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500/20 text-orange-400' : 'bg-blue-500/20 text-blue-400'}`}>
+                          }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-[var(--surface3)] text-[var(--text)]'}`}>
                             {a.is_frozen === 1 ? "❄️ Unfreeze" : "❄️ Freeze"}
                           </button>
 
-                          {/* Edit Limit Button */}
                           <button onClick={async () => {
                             const limitStr = prompt("Set new Hourly Limit:", (a.hourly_limit || 30).toString());
                             if (limitStr) {
@@ -523,17 +528,16 @@ export default function AdminPage() {
                               alert("✅ Limit Updated!");
                               refresh();
                             }
-                          }} className="btn btn-sm bg-white/10 text-white">
+                          }} className="btn btn-sm bg-[var(--surface3)] text-[var(--text)] hover:bg-[var(--border)]">
                             ✏️ Edit Limit
                           </button>
 
-                          {/* Remove Rent Button */}
                           <button onClick={async () => {
                             if(!confirm("Remove this account from Rent System?")) return;
                             await adminMakeRentAccount(a.id, 0, 30, 0);
                             alert("✅ Removed from Rent System!");
                             refresh();
-                          }} className="btn btn-sm bg-red-500/20 text-red-400">
+                          }} className="btn btn-sm bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/30">
                             🗑️ Remove
                           </button>
                         </div>
@@ -545,65 +549,6 @@ export default function AdminPage() {
               )}
             </div>
           )}
-
-          {tab === "broadcast" && (
-            <div className="fade space-y-5 max-w-2xl">
-              <div>
-                <h1 className="text-2xl font-bold">Broadcast</h1>
-                <p className="text-sm text-[var(--dim)] mt-0.5">
-                  Send a Telegram message to all {c.users || 0} users
-                </p>
-              </div>
-
-              <div className="card p-5">
-                <div className="text-xs font-semibold uppercase tracking-wider text-[var(--dim)] mb-3">Message</div>
-                <textarea
-                  className="inp min-h-[140px] resize-none"
-                  placeholder="Type your message here… Telegram formatting supported (*bold*, _italic_)"
-                  value={broadcast}
-                  onChange={e => setBroadcast(e.target.value)}
-                />
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-[11px] text-[var(--dim2)]">
-                    {broadcast.length} chars
-                  </div>
-                  <button onClick={sendBroadcast} disabled={busy || !broadcast.trim()}
-                    className="btn btn-primary">
-                    {busy ? "Sending…" : "Send to all users"}
-                  </button>
-                </div>
-              </div>
-
-              <div className="card p-4 bg-[var(--warning)]/5 border-[var(--warning)]/30">
-                <div className="text-xs text-[var(--warning)]">
-                  ⚠ Rate limit: ~0.1s per user. Total time ≈ {(c.users || 0) * 0.1}s.
-                </div>
-              </div>
-            </div>
-          )}
-
-          {tab === "pricing" && (
-            <div className="fade space-y-5">
-              <div>
-                <h1 className="text-2xl font-bold">Plan Pricing</h1>
-                <p className="text-sm text-[var(--dim)] mt-0.5">Configure limits & prices for each plan</p>
-              </div>
-
-              <div className="card overflow-hidden">
-                <div className="grid grid-cols-7 gap-3 p-3 bg-[var(--surface2)] text-[11px] font-semibold uppercase tracking-wider text-[var(--dim)]">
-                  <span>Plan</span>
-                  <span>Price ৳</span>
-                  <span>Days</span>
-                  <span>Accounts</span>
-                  <span>Joins/d</span>
-                  <span>Msgs/d</span>
-                  <span></span>
-                </div>
-                {plans.map((p: any) => (
-                  <div key={p.name} className="grid grid-cols-7 gap-3 p-3 items-center border-t border-[var(--border)]">
-                    <span className="text-sm font-semibold uppercase text-[var(--accent2)]">{p.name}</span>
-                    <input type="number" defaultValue={p.price}
-                      onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), price: +e.target.value}})}
                       className="inp py-1 text-xs" />
                     <input type="number" defaultValue={p.days}
                       onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), days: +e.target.value}})}

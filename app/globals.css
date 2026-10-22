@@ -234,3 +234,23 @@ body {
 .nav-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; color: var(--dim); cursor: pointer; border-radius: 0.5rem; transition: all 0.2s; font-size: 0.875rem; font-weight: 500; }
 .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
 .nav-item.active { background: rgba(59,130,246,0.15); color: var(--accent2); }
+
+
+/* Force Admin Panel to use its own theme */
+.admin-mode {
+  background-color: #09090b !important; /* Very dark background */
+  color: #e4e4e7 !important;
+}
+.admin-mode .card {
+  background-color: #18181b !important;
+  border: 1px solid #27272a !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+}
+.admin-mode .btn {
+  border-radius: 0.5rem !important;
+}
+.admin-mode .stat {
+  background-color: #18181b !important;
+  border: 1px solid #27272a !important;
+}

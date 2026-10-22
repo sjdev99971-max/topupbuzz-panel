@@ -430,7 +430,6 @@ function LibraryTab({ setTab, accounts, onRefresh }: any) {
           <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => loadGroups(e.target.value)}>
             <option value="">-- Choose Account --</option>
             {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
-                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
           </select>
           {loadingDlgs && <div className="flex items-center gap-2 text-xs text-[var(--accent)] mt-3"><Loader2 size={14} className="animate-spin" /> Fetching...</div>}        
         </div>
@@ -877,6 +876,7 @@ if (mode === "send_now") {
               <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={selectedAcc} onChange={e => setSelectedAcc(e.target.value)}>
                 <option value="">-- Choose Account --</option>
                 {accounts.map((a: any) => <option key={a.id} value={a.id}>{a.phone}</option>)}
+                {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
                 {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
                 {(rentedAccounts || []).map((a: any) => <option key={a.id} value={a.id}>{a.phone} ⭐</option>)}
               </select>
