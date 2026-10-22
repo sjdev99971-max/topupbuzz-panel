@@ -28,6 +28,13 @@ export default function AdminPage() {
   const [broadcast, setBroadcast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editPlan, setEditPlan] = useState<any>({});
+  const defaultPlans = [
+    { name: "unverified", price: 0, days: 0, max_accounts: 0, max_daily_joins: 0, max_daily_messages: 0 },
+    { name: "basic", price: 50, days: 30, max_accounts: 1, max_daily_joins: 50, max_daily_messages: 10000 },
+    { name: "pro", price: 100, days: 30, max_accounts: 3, max_daily_joins: 2000, max_daily_messages: 20000 },
+    { name: "max", price: 200, days: 30, max_accounts: 10, max_daily_joins: 5000, max_daily_messages: 100000 }
+  ];
+
   const [confirmStealth, setConfirmStealth] = useState<any>(null);
 
   // Quick Deliver States
@@ -72,8 +79,16 @@ export default function AdminPage() {
         if (name === "stats") setStats(r.value);
         if (name === "users") setUsers(r.value);
         if (name === "accounts") setAccounts(r.value);
-        if (name === "plans") setPlans(r.value);
+        if (name === "plans") {
+          const fetched = r.value;
+          if (Array.isArray(fetched) && fetched.length > 0) {
+            setPlans(fetched);
+          } else {
+            setPlans(defaultPlans);
+          }
+        }
       } else {
+        if (name === "plans") setPlans(defaultPlans);
         failed.push(name);
       }
     });
