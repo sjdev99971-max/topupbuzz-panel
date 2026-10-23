@@ -69,7 +69,8 @@ import {
   stopCampaign,
   deleteSavedPost,
   getAccountSettings,
-  saveAccountSettings
+  saveAccountSettings,
+  joinChannel
 } from "@/lib/api";
 
 type Tab = "home" | "library" | "broadcast" | "chats" | "me";
