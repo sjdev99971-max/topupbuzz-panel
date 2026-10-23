@@ -108,7 +108,7 @@ export default function Landing() {
 
           <div className="flex flex-wrap items-center justify-center gap-3">
             <a
-              href="https://t.me/S4JahidBot"
+              href="https://t.me/JahidAutoPostAgent"
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-primary text-sm px-6 py-3"

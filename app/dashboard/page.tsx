@@ -848,7 +848,7 @@ function BroadcastTab({ accounts, rentedAccounts, folders }: any) {
             <ChevronRight size={20} className="text-[var(--dim)]" />
           </div>
 
-          <div className="glass-card p-4 flex items-center gap-4 cursor-pointer" onClick={() => window.open("https://t.me/S4JahidBot?start=import_post", "_blank")}>
+          <div className="glass-card p-4 flex items-center gap-4 cursor-pointer" onClick={() => window.open("https://t.me/JahidAutoPostAgent?start=import_post", "_blank")}>
             <div className="w-12 h-12 rounded-full bg-[#2b8bf5] flex items-center justify-center text-white shadow-[0_0_15px_rgba(43,139,245,0.4)]"><LinkIcon size={22} /></div>
             <div className="flex-1"><div className="text-white text-sm font-bold">Import Post via Bot</div><div className="text-xs text-[var(--accent)]">Forward post to bot to save</div></div>
             <ChevronRight size={20} className="text-[var(--accent)]" />
@@ -883,7 +883,7 @@ function BroadcastTab({ accounts, rentedAccounts, folders }: any) {
           <button 
             onClick={() => {
               const title = prompt("Enter Template Title:");
-              if (title) window.open(`https://t.me/S4JahidBot?start=savetemplate_${encodeURIComponent(title)}`, "_blank");
+              if (title) window.open(`https://t.me/JahidAutoPostAgent?start=savetemplate_${encodeURIComponent(title)}`, "_blank");
             }}
             className="bg-[#1cd45a] text-black px-4 py-2 rounded-lg font-bold text-sm w-full"
           >
