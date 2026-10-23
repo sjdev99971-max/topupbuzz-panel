@@ -324,7 +324,22 @@ export default function AdminPage() {
                 <div className="text-sm font-semibold mb-3 flex items-center gap-2">⚡ Quick Deliver (Fast Upgrade)</div>
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-[var(--dim)] mb-1 block">User Telegram ID</label><input type="number" placeholder="e.g. 123456789" value={quickId} onChange={e => setQuickId(e.target.value)} className="inp py-2 text-sm w-full" /></div>
-                  <div className="w-[130px]"><label className="text-[10px] text-[var(--dim)] mb-1 block">Select Plan</label><select value={quickPlan} onChange={e => setQuickPlan(e.target.value)} className="inp py-2 text-sm w-full"><option value="basic">Basic</option><option value="pro">Pro</option><option value="max">Max</option></select></div>
+                  <div className="w-[130px]">
+                    <label className="text-[10px] text-[var(--dim)] mb-1 block">Select Plan</label>
+                    <select value={quickPlan} onChange={e => setQuickPlan(e.target.value)} className="inp py-2 text-sm w-full">
+                      {plans.length > 0 ? (
+                        plans.map((p: any) => (
+                          <option key={p.name} value={p.name}>{p.name.toUpperCase()}</option>
+                        ))
+                      ) : (
+                        <>
+                          <option value="basic">Basic</option>
+                          <option value="pro">Pro</option>
+                          <option value="max">Max</option>
+                        </>
+                      )}
+                    </select>
+                  </div>
                   <div className="w-[90px]"><label className="text-[10px] text-[var(--dim)] mb-1 block">Days</label><input type="number" min="1" placeholder="30" value={quickDays} onChange={e => setQuickDays(e.target.value)} className="inp py-2 text-sm w-full" /></div>
                   <button onClick={handleQuickDeliver} disabled={busy} className="btn py-2 px-6 h-[38px] bg-gradient-to-r from-[var(--accent2)] to-emerald-500 text-white font-bold rounded-xl">{busy ? "..." : "Deliver Now"}</button>
                   <button onClick={handleQuickDemote} disabled={busy} className="btn py-2 px-4 h-[38px] bg-red-500/10 text-red-500 border border-red-500/30">Demote</button>
