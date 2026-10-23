@@ -429,7 +429,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <button onClick={async () => {
                             const newStatus = a.is_frozen === 1 ? 0 : 1;
-                            await adminMakeRentAccount, adminDeletePlan(a.id, 1, a.hourly_limit || 30, newStatus);
+                            await adminMakeRentAccount(a.id, 1, a.hourly_limit || 30, newStatus);
                             alert(newStatus === 1 ? "❄️ Frozen!" : "🔥 Unfrozen!");
                             refresh();
                           }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500 text-white' : 'bg-[var(--surface3)] text-[var(--text)]'}`}>
@@ -438,13 +438,13 @@ export default function AdminPage() {
                           <button onClick={async () => {
                             const limitStr = prompt("Set new Hourly Limit:", (a.hourly_limit || 30).toString());
                             if (limitStr) {
-                              await adminMakeRentAccount, adminDeletePlan(a.id, 1, parseInt(limitStr), a.is_frozen || 0);
+                              await adminMakeRentAccount(a.id, 1, parseInt(limitStr), a.is_frozen || 0);
                               alert("✅ Limit Updated!"); refresh();
                             }
                           }} className="btn btn-sm bg-[var(--surface3)] text-[var(--text)]">✏️ Edit Limit</button>
                           <button onClick={async () => {
                             if(!confirm("Remove from Rent System?")) return;
-                            await adminMakeRentAccount, adminDeletePlan(a.id, 0, 30, 0);
+                            await adminMakeRentAccount(a.id, 0, 30, 0);
                             alert("✅ Removed!"); refresh();
                           }} className="btn btn-sm bg-red-500/10 text-red-500 border border-red-500/30">🗑️ Remove</button>
                         </div>
