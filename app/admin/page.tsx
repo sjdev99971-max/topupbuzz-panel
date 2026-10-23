@@ -129,17 +129,19 @@ export default function AdminPage() {
   };
 
   const handleQuickDeliver = async () => {
-    if (!quickId.trim()) return toast("Enter User ID", "error");
+    if (!quickId.trim()) return alert("Enter User ID");
     setBusy(true);
     try {
-      await adminSetUserPlan(Number(quickId), quickPlan, Number(quickDays));
-      toast(`✅ Delivered ${quickPlan} to ${quickId}`, "success");
+      const res = await adminSetUserPlan(Number(quickId), quickPlan, Number(quickDays));
+      console.log("Deliver response:", res);
+      alert(`✅ Delivered ${quickPlan} to ${quickId}`);
       setQuickId(""); refresh();
-    } catch (err: any) { 
-      toast(err.response?.data?.detail || "Delivery failed. Check User ID or Plan.", "error"); 
+    } catch (e: any) { 
+      const msg = e.response?.data?.detail || e.message || "Check console.";
+      alert(`❌ Delivery failed: ${msg}`); 
     }
     setBusy(false);
-  };
+  };;
 
   const handleQuickDemote = async () => {
     if (!quickId.trim()) return toast("Enter User ID", "error");
