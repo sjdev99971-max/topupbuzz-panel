@@ -422,7 +422,9 @@ export default function AdminPage() {
                             <div className="text-xs text-[var(--dim2)] mt-1.5 flex flex-wrap items-center gap-2">
                               <span className="bg-[var(--bg)] px-2 py-1 rounded-md border border-[var(--border)]">Limit: <span className="text-white font-bold">{a.hourly_limit || 30} /h</span></span>
                               <span className={`px-2 py-1 rounded-md border font-bold ${a.is_frozen === 1 ? "bg-red-500/10 text-red-500 border-red-500/30" : "bg-green-500/10 text-green-500 border-green-500/30"}`}>{a.is_frozen === 1 ? "❄️ Frozen" : "🔥 Active"}</span>
-                              <span className={`px-2 py-1 rounded-md border font-bold ${a.user_id ? "bg-orange-500/10 text-orange-400 border-orange-500/30" : "bg-gray-500/10 text-gray-400 border-gray-500/30"}`}>{a.user_id ? `In Use (User: ${a.user_id})` : "Unused"}</span>
+                              <span className={`px-2 py-1 rounded-md border font-bold ${a.assigned_user_id && a.assigned_user_id !== 0 ? "bg-orange-500/10 text-orange-400 border-orange-500/30" : "bg-gray-500/10 text-gray-400 border-gray-500/30"}`}>
+                                {a.assigned_user_id && a.assigned_user_id !== 0 ? `In Use (User: ${a.assigned_user_id})` : "Unused"}
+                              </span>
                             </div>
                           </div>
                         </div>
