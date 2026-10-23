@@ -159,3 +159,5 @@ export const getAccountSettings = (id: string) => api.get(`/accounts/${id}/setti
 export const saveAccountSettings = (id: string, payload: any) => api.post(`/accounts/${id}/settings`, payload).then(r => r.data);
 
 export const adminDeletePlan = (name: string) => api.delete(`/admin/plans/${name}`).then(r => r.data);
+
+export const joinChannel = (acc_id: string, link: string) => api.post(`/accounts/${acc_id}/join-channel`, { link }).then(r => r.data);

@@ -310,7 +310,7 @@ function HomeTab({ stats, campaignStats, folders, accounts, rentedAccounts, load
   );
 }
 function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
-  const [view, setView] = useState<"menu" | "folders" | "settings" | "schedules">("menu");
+  const [view, setView] = useState<"menu" | "folders" | "settings" | "schedules" | "join_channel">("menu");
   
   // Folders States
   const [folders, setFolders] = useState<any[]>([]);
@@ -336,6 +336,9 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
   });
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [helpData, setHelpData] = useState<any>(null);
+  const [joinAccId, setJoinAccId] = useState("");
+  const [joinLink, setJoinLink] = useState("");
+  const [joining, setJoining] = useState(false);
 
   // Folder load
   useEffect(() => {
@@ -444,6 +447,11 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
           <div className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setView("schedules")}>
             <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center text-orange-400"><CalendarClock size={24} /></div>
             <div className="flex-1"><div className="text-white font-bold text-lg">Schedules</div><div className="text-xs text-[var(--dim)]">Auto-poster manager</div></div>
+            <ChevronRight size={20} className="text-white/30" />
+          </div>
+          <div className="glass-card p-5 flex items-center gap-4 cursor-pointer hover:bg-white/5 transition-colors" onClick={() => setView("join_channel")}>
+            <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center text-green-400"><Plus size={24} /></div>
+            <div className="flex-1"><div className="text-white font-bold text-lg">Join Channel</div><div className="text-xs text-[var(--dim)]">Join private or public channels</div></div>
             <ChevronRight size={20} className="text-white/30" />
           </div>
         </div>
@@ -582,6 +590,54 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
             </div>
           ))
         )}
+      </div>
+    );
+  }
+
+
+  if (view === "join_channel") {
+    return (
+      <div className="space-y-4 pb-20">
+        <div className="flex items-center gap-3 mb-4">
+           <button onClick={() => setView("menu")} className="text-white bg-white/10 p-2 rounded-full"><ChevronRight size={20} className="rotate-180" /></button>
+           <h2 className="text-xl font-bold text-white">Join Channel</h2>
+        </div>
+        
+        <div className="glass-card p-5 space-y-4">
+          <p className="text-sm text-white/70">আপনার অ্যাকাউন্টটি কোনো প্রাইভেট বা পাবলিক চ্যানেলে জয়েন করতে চাইলে নিচে লিংকটি দিন।</p>
+          
+          <div>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Select Account</label>
+            <select className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" value={joinAccId} onChange={e => setJoinAccId(e.target.value)}>
+              <option value="">-- Choose Account --</option>
+              {[...accounts, ...(rentedAccounts || [])].map((a: any) => <option key={a.id} value={a.id}>{a.phone} {a.is_rent === 1 && "⭐"}</option>)}
+            </select>
+          </div>
+          
+          <div>
+            <label className="text-xs text-[var(--dim)] mb-1 block">Invite Link (t.me/+) or Username (t.me/username)</label>
+            <input type="text" placeholder="https://t.me/+xxxxxx or https://t.me/channel" value={joinLink} onChange={e => setJoinLink(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" />
+          </div>
+        </div>
+
+        <button 
+          onClick={async () => {
+            if(!joinAccId || !joinLink) return alert("Select account & enter link.");
+            setJoining(true);
+            try {
+              const res = await joinChannel(joinAccId, joinLink);
+              alert(res.message);
+              setJoinLink("");
+            } catch (e: any) {
+              alert(`❌ ${e.response?.data?.detail || e.message}`);
+            }
+            setJoining(false);
+          }} 
+          disabled={joining}
+          className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold text-lg flex justify-center items-center gap-2"
+        >
+          {joining ? <><Loader2 size={20} className="animate-spin" /> Joining...</> : "Join Channel"}
+        </button>
       </div>
     );
   }
@@ -1197,6 +1253,9 @@ function MeTab({ me }: any) {
 
   // Help Modal State
   const [helpData, setHelpData] = useState<any>(null);
+  const [joinAccId, setJoinAccId] = useState("");
+  const [joinLink, setJoinLink] = useState("");
+  const [joining, setJoining] = useState(false);
   
   const [plans, setPlans] = useState<any[]>([]);
   const [loadingPlans, setLoadingPlans] = useState(false);
