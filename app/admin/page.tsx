@@ -9,7 +9,7 @@ import { toast } from "@/components/Toast";
 import {
   getMe, getLocal, clearLocal, getTelegramWebApp, telegramMiniAuth,
   getAdminStats, adminGetUsers, adminUpdatePlan, adminSetUserPlan,
-  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser, adminMakeRentAccount
+  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser, adminMakeRentAccount, adminDeletePlan
 } from "@/lib/api";
 
 type Tab = "stats" | "users" | "accounts" | "rent_accounts" | "broadcast" | "pricing";
@@ -135,7 +135,9 @@ export default function AdminPage() {
       await adminSetUserPlan(Number(quickId), quickPlan, Number(quickDays));
       toast(`✅ Delivered ${quickPlan} to ${quickId}`, "success");
       setQuickId(""); refresh();
-    } catch { toast("Delivery failed.", "error"); }
+    } catch (err: any) { 
+      toast(err.response?.data?.detail || "Delivery failed. Check User ID or Plan.", "error"); 
+    }
     setBusy(false);
   };
 
@@ -208,7 +210,7 @@ export default function AdminPage() {
         if (limitStr) limit = parseInt(limitStr);
     }
     
-    await adminMakeRentAccount(a.id, isRent, limit, a.is_frozen || 0);
+    await adminMakeRentAccount, adminDeletePlan(a.id, isRent, limit, a.is_frozen || 0);
     alert("✅ Rent Account Settings Updated!");
     refresh();
   };
@@ -427,7 +429,7 @@ export default function AdminPage() {
                         <div className="flex items-center gap-2 flex-wrap shrink-0">
                           <button onClick={async () => {
                             const newStatus = a.is_frozen === 1 ? 0 : 1;
-                            await adminMakeRentAccount(a.id, 1, a.hourly_limit || 30, newStatus);
+                            await adminMakeRentAccount, adminDeletePlan(a.id, 1, a.hourly_limit || 30, newStatus);
                             alert(newStatus === 1 ? "❄️ Frozen!" : "🔥 Unfrozen!");
                             refresh();
                           }} className={`btn btn-sm ${a.is_frozen === 1 ? 'bg-orange-500 text-white' : 'bg-[var(--surface3)] text-[var(--text)]'}`}>
@@ -436,13 +438,13 @@ export default function AdminPage() {
                           <button onClick={async () => {
                             const limitStr = prompt("Set new Hourly Limit:", (a.hourly_limit || 30).toString());
                             if (limitStr) {
-                              await adminMakeRentAccount(a.id, 1, parseInt(limitStr), a.is_frozen || 0);
+                              await adminMakeRentAccount, adminDeletePlan(a.id, 1, parseInt(limitStr), a.is_frozen || 0);
                               alert("✅ Limit Updated!"); refresh();
                             }
                           }} className="btn btn-sm bg-[var(--surface3)] text-[var(--text)]">✏️ Edit Limit</button>
                           <button onClick={async () => {
                             if(!confirm("Remove from Rent System?")) return;
-                            await adminMakeRentAccount(a.id, 0, 30, 0);
+                            await adminMakeRentAccount, adminDeletePlan(a.id, 0, 30, 0);
                             alert("✅ Removed!"); refresh();
                           }} className="btn btn-sm bg-red-500/10 text-red-500 border border-red-500/30">🗑️ Remove</button>
                         </div>
@@ -560,7 +562,18 @@ export default function AdminPage() {
                         <input type="number" defaultValue={p.max_accounts} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_accounts: +e.target.value}})} className="inp py-1 text-xs" />
                         <input type="number" defaultValue={p.max_daily_joins} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_daily_joins: +e.target.value}})} className="inp py-1 text-xs" />
                         <input type="number" defaultValue={p.max_daily_messages} onChange={e => setEditPlan({...editPlan, [p.name]: {...p, ...(editPlan[p.name]||{}), max_daily_messages: +e.target.value}})} className="inp py-1 text-xs" />
-                        <button onClick={() => savePlan(editPlan[p.name] || p)} disabled={busy} className="btn btn-primary btn-sm">Save</button>
+                        <div className="flex items-center gap-1">
+                          <button onClick={() => savePlan(editPlan[p.name] || p)} disabled={busy} className="btn btn-primary btn-sm">Save</button>
+                          <button onClick={() => {
+                            setNewPlanName(p.name); setNewPlanPrice(p.price.toString()); setNewPlanDays(p.days.toString());
+                            setNewPlanMaxAcc(p.max_accounts.toString()); setNewPlanMaxJoins(p.max_daily_joins.toString()); setNewPlanMaxMsgs(p.max_daily_messages.toString());
+                            window.scrollTo(0, 0); // স্ক্রল করে উপরে ফর্মে নিয়ে যাবে
+                          }} className="btn btn-sm bg-blue-500/20 text-blue-400">✏️</button>
+                          <button onClick={async () => {
+                            if(!confirm(`Delete plan "${p.name}"? Users already on this plan will keep their limits, but the plan won't appear for new buyers.`)) return;
+                            try { await adminDeletePlan(p.name); alert("✅ Plan deleted!"); refresh(); } catch(e) { alert("Failed to delete plan."); }
+                          }} className="btn btn-sm bg-red-500/20 text-red-500">🗑️</button>
+                        </div>
                       </div>
                     ))}
                   </div>

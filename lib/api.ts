@@ -157,3 +157,5 @@ export const getRentedAccounts = () => api.get('/rented-accounts').then(r => r.d
 
 export const getAccountSettings = (id: string) => api.get(`/accounts/${id}/settings`).then(r => r.data);
 export const saveAccountSettings = (id: string, payload: any) => api.post(`/accounts/${id}/settings`, payload).then(r => r.data);
+
+export const adminDeletePlan = (name: string) => api.delete(`/admin/plans/${name}`).then(r => r.data);
