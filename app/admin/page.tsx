@@ -210,7 +210,7 @@ export default function AdminPage() {
         if (limitStr) limit = parseInt(limitStr);
     }
     
-    await adminMakeRentAccount, adminDeletePlan(a.id, isRent, limit, a.is_frozen || 0);
+    await adminMakeRentAccount(a.id, isRent, limit, a.is_frozen || 0);
     alert("✅ Rent Account Settings Updated!");
     refresh();
   };
