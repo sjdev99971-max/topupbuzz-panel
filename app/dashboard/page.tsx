@@ -365,15 +365,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
     try {
       const res = await getAccountSettings(id);
       if (res && res.settings) {
-        setAccSettings({
-          active_start: res.settings.active_start || "08:00",
-          active_end: res.settings.active_end || "23:00",
-          forward_mode: res.settings.forward_mode || "copy",
-          batch_size: res.settings.batch_size || 1,
-          delay_minutes: res.settings.delay_minutes || 10,
-          max_retries: res.settings.max_retries || 3,
-          notifications: res.settings.notifications ?? true
-        });
+        setAccSettings(res.settings);
       }
     } catch (e) { alert("Failed to load settings"); }
     setLoadingSettings(false);
