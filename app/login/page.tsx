@@ -145,6 +145,7 @@ export default function LoginPage() {
                 <option value="+44">🇬🇧 UK (+44)</option>
                 <option value="+971">🇦🇪 UAE (+971)</option>
                 <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+                <option value="+968">🇴🇲 Oman (+968)</option>
                 <option value="+60">🇲🇾 Malaysia (+60)</option>
                 <option value="+65">🇸🇬 Singapore (+65)</option>
                 <option value="+62">🇮🇩 Indonesia (+62)</option>
