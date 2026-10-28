@@ -138,12 +138,32 @@ export default function LoginPage() {
 
             <div className="relative mb-3">
               <select value={countryCode} onChange={(e) => setCountryCode(e.target.value)} className="w-full bg-[#141414] border border-white/10 text-white appearance-none rounded-2xl px-5 py-4 outline-none focus:border-[#1cd45a]">
-                <option value="+880">Bangladesh (+880)</option>
-                <option value="+91">India (+91)</option>
-                <option value="+1">USA (+1)</option>
-                <option value="+44">UK (+44)</option>
-                <option value="+971">UAE (+971)</option>
-                <option value="+966">Saudi Arabia (+966)</option>
+                <option value="+880">🇧🇩 Bangladesh (+880)</option>
+                <option value="+91">🇮🇳 India (+91)</option>
+                <option value="+92">🇵🇰 Pakistan (+92)</option>
+                <option value="+1">🇺🇸 USA (+1)</option>
+                <option value="+44">🇬🇧 UK (+44)</option>
+                <option value="+971">🇦🇪 UAE (+971)</option>
+                <option value="+966">🇸🇦 Saudi Arabia (+966)</option>
+                <option value="+60">🇲🇾 Malaysia (+60)</option>
+                <option value="+65">🇸🇬 Singapore (+65)</option>
+                <option value="+62">🇮🇩 Indonesia (+62)</option>
+                <option value="+63">🇵🇭 Philippines (+63)</option>
+                <option value="+90">🇹🇷 Turkey (+90)</option>
+                <option value="+7">🇷🇺 Russia (+7)</option>
+                <option value="+20">🇪🇬 Egypt (+20)</option>
+                <option value="+234">🇳🇬 Nigeria (+234)</option>
+                <option value="+27">🇿🇦 South Africa (+27)</option>
+                <option value="+49">🇩🇪 Germany (+49)</option>
+                <option value="+33">🇫🇷 France (+33)</option>
+                <option value="+39">🇮🇹 Italy (+39)</option>
+                <option value="+34">🇪🇸 Spain (+34)</option>
+                <option value="+86">🇨🇳 China (+86)</option>
+                <option value="+81">🇯🇵 Japan (+81)</option>
+                <option value="+82">🇰🇷 South Korea (+82)</option>
+                <option value="+61">🇦🇺 Australia (+61)</option>
+                <option value="+55">🇧🇷 Brazil (+55)</option>
+                <option value="+52">🇲🇽 Mexico (+52)</option>
               </select>
               <ChevronDown size={20} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
             </div>

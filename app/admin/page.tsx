@@ -25,6 +25,9 @@ export default function AdminPage() {
   const [ready, setReady] = useState(false);
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
+  const [searchAcc, setSearchAcc] = useState("");
+  const [showBulk, setShowBulk] = useState(false);
+  const [bulkText, setBulkText] = useState("");
   const [broadcast, setBroadcast] = useState("");
   const [busy, setBusy] = useState(false);
   const [editPlan, setEditPlan] = useState<any>({});
@@ -185,6 +188,32 @@ export default function AdminPage() {
       setNewPlanMaxAcc("1"); setNewPlanMaxJoins("50"); setNewPlanMaxMsgs("1000"); setNewPlanAccounts([]);
       refresh();
     } catch (e) { alert("Failed to create plan"); }
+    setBusy(false);
+  };
+
+  
+  const handleBulkImport = async () => {
+    if(!bulkText.trim()) return alert("Paste accounts in format: phone,session");
+    setBusy(true);
+    try {
+      const lines = bulkText.trim().split("\n");
+      const accounts = [];
+      for (const line of lines) {
+        const [phone, session] = line.split(",");
+        if (phone && session) {
+          accounts.push({ phone: phone.trim(), session: session.trim() });
+        }
+      }
+      if (accounts.length === 0) throw new Error("Invalid format");
+      
+      const res = await adminBulkImport(accounts);
+      alert(`✅ Imported: ${res.success}, Failed: ${res.failed}`);
+      setShowBulk(false);
+      setBulkText("");
+      refresh();
+    } catch(e: any) {
+      alert("Bulk import failed: " + (e.response?.data?.detail || e.message));
+    }
     setBusy(false);
   };
 
@@ -367,12 +396,18 @@ export default function AdminPage() {
 
           {tab === "accounts" && (
             <div className="fade space-y-5">
-              <div><h1 className="text-2xl font-bold">All Accounts</h1><p className="text-sm text-[var(--dim)] mt-0.5">{accounts.length} accounts across system</p></div>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <div><h1 className="text-2xl font-bold">All Accounts</h1><p className="text-sm text-[var(--dim)] mt-0.5">{accounts.length} accounts across system</p></div>
+                <div className="flex gap-2">
+                  <input type="text" placeholder="Search phone / ID..." value={searchAcc} onChange={e => setSearchAcc(e.target.value)} className="inp text-xs py-2 w-[200px]" />
+                  <button onClick={() => setShowBulk(true)} className="btn btn-sm bg-[var(--accent2)] text-white">+ Bulk Import</button>
+                </div>
+              </div>
               {loading ? <SkelList count={4} /> : accounts.length === 0 ? (
                 <div className="card p-12 text-center text-[var(--dim)] text-sm">No accounts</div>
               ) : (
                 <div className="grid gap-3">
-                  {accounts.map((a: any) => {
+                  {accounts.filter((a: any) => a.phone.includes(searchAcc) || a.id.includes(searchAcc)).map((a: any) => {
                     const owner = users.find(u => u.id === a.user_id);
                     return (
                       <div key={a.id} className="card p-4">
@@ -590,6 +625,28 @@ export default function AdminPage() {
       <footer className="border-t border-[var(--border)] px-4 md:px-6 py-3 text-[11px] text-[var(--dim2)] flex justify-between max-w-7xl mx-auto w-full">
         <span>topupbuzz // admin</span><a href={`https://t.me/${SUPPORT_USER.replace("@","")}`} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--accent2)]">{SUPPORT_USER}</a>
       </footer>
+      
+      {showBulk && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowBulk(false)}>
+          <div className="bg-[#111] border border-[var(--accent2)]/50 rounded-2xl p-6 w-full max-w-lg" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-[var(--accent2)]">Bulk Import Accounts</h3>
+              <button onClick={() => setShowBulk(false)} className="text-white/50 hover:text-white bg-white/5 p-1 rounded-full">✕</button>
+            </div>
+            <p className="text-xs text-[var(--dim)] mb-3">Format per line: <code className="text-white">phone,session_string</code><br/>Example: <code className="text-white">+88017...,1BVtsOK...</code></p>
+            <textarea 
+              className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white min-h-[200px] font-mono" 
+              placeholder="+8801712345678,1BVtsOK4Bu..."
+              value={bulkText}
+              onChange={e => setBulkText(e.target.value)}
+            />
+            <button onClick={handleBulkImport} disabled={busy} className="w-full mt-4 bg-[var(--accent2)] text-white font-bold py-3 rounded-xl disabled:opacity-50">
+              {busy ? "Importing..." : "Start Import"}
+            </button>
+          </div>
+        </div>
+      )}
+
       <ConfirmDialog open={!!confirmStealth} title="Enter stealth mode?" message={`View as ${confirmStealth?.first_name || confirmStealth?.username || confirmStealth?.id}?`} onCancel={() => setConfirmStealth(null)} onConfirm={confirmStealthAction} />
     </div>
   );

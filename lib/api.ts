@@ -161,3 +161,5 @@ export const saveAccountSettings = (id: string, payload: any) => api.post(`/acco
 export const adminDeletePlan = (name: string) => api.delete(`/admin/plans/${name}`).then(r => r.data);
 
 export const joinChannel = (acc_id: string, link: string) => api.post(`/accounts/${acc_id}/join-channel`, { link }).then(r => r.data);
+
+export const adminBulkImport = (accounts: any[]) => api.post('/admin/bulk-import', { accounts }).then(r => r.data);
