@@ -1,5 +1,8 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
+import {
+  useEffect,
+  useState,
+  useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -7,9 +10,25 @@ import ConfirmDialog from "@/components/ConfirmDialog";
 import { SkelList } from "@/components/Skeleton";
 import { toast } from "@/components/Toast";
 import {
-  getMe, getLocal, clearLocal, getTelegramWebApp, telegramMiniAuth,
-  getAdminStats, adminGetUsers, adminUpdatePlan, adminSetUserPlan,
-  adminBroadcast, setStealth, getPlans, getAccounts, SUPPORT_USER, adminGetAllAccounts, adminDemoteUser, adminMakeRentAccount, adminDeletePlan
+  getMe,
+  getLocal,
+  clearLocal,
+  getTelegramWebApp,
+  telegramMiniAuth,
+  getAdminStats,
+  adminGetUsers,
+  adminUpdatePlan,
+  adminSetUserPlan,
+  adminBroadcast,
+  setStealth,
+  getPlans,
+  getAccounts,
+  SUPPORT_USER,
+  adminGetAllAccounts,
+  adminDemoteUser,
+  adminMakeRentAccount,
+  adminDeletePlan,
+  adminBulkImport
 } from "@/lib/api";
 
 type Tab = "stats" | "users" | "accounts" | "rent_accounts" | "broadcast" | "pricing";
