@@ -1175,6 +1175,20 @@ if (mode === "send_now") {
             <button onClick={handleBroadcastNow} disabled={sending} className="w-full bg-[var(--accent)] text-black py-4 rounded-xl font-bold text-lg flex justify-center gap-2">
               {sending ? <><Loader2 size={20} className="animate-spin" /> Sending...</> : "Start Broadcast"}
             </button>
+
+            {/* TEST BROADCAST SECTION */}
+            <div className="mt-8 border-t border-white/10 pt-6">
+              <h3 className="text-lg font-bold text-white mb-4">🧪 Test Broadcast</h3>
+              <div className="glass-card p-4 space-y-4">
+                <div>
+                  <label className="text-xs text-[var(--dim)] mb-1 block">Enter Chat ID (e.g. 8265093603)</label>
+                  <input type="text" placeholder="8265093603" value={testChatId} onChange={e => setTestChatId(e.target.value)} className="w-full bg-[#050505] border border-[#1f1f22] rounded-xl px-4 py-3 text-sm text-white" />
+                </div>
+                <button onClick={handleTestBroadcast} disabled={sending} className="w-full bg-[#2b8bf5] text-white py-3 rounded-xl font-bold flex justify-center gap-2">
+                  {sending ? <Loader2 size={20} className="animate-spin" /> : "Send Test Message"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
