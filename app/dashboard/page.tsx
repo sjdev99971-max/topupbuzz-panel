@@ -318,6 +318,7 @@ function LibraryTab({ setTab, accounts, rentedAccounts, onRefresh }: any) {
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [selectedAcc, setSelectedAcc] = useState("");
+  const [testChatId, setTestChatId] = useState("");
   const [dialogs, setDialogs] = useState<any[]>([]);
   const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
   const [folderName, setFolderName] = useState("");
@@ -753,6 +754,7 @@ function BroadcastTab({ accounts, rentedAccounts, folders }: any) {
   const [loadingLogs, setLoadingLogs] = useState(false);
 
   const [selectedAcc, setSelectedAcc] = useState("");
+  const [testChatId, setTestChatId] = useState("");
   const [channelId, setChannelId] = useState("");
   const [savedChannels, setSavedChannels] = useState<any[]>([]);
   const [channelMode, setChannelMode] = useState("copy");
@@ -877,6 +879,28 @@ function BroadcastTab({ accounts, rentedAccounts, folders }: any) {
       setTimeout(() => alert(`❌ Broadcast failed!\n${errMsg}`), 200);
     }
   };;
+
+
+  const handleTestBroadcast = async () => {
+    if (!selectedAcc || !testChatId || !selectedTemplate) return alert("Select account, template & enter Chat ID.");
+    const templateData = savedPosts.find(p => p.id.toString() === selectedTemplate);
+    if (!templateData) return alert("Template not found.");
+    
+    setSending(true);
+    try {
+      const res = await broadcastNow({
+        acc_id: selectedAcc,
+        targets: [{ id: testChatId, title: "Test Chat" }], // শুধু এই একটি আইডিতে যাবে
+        type: templateData.content.startsWith("http") ? "link" : "text",
+        content: templateData.content
+      });
+      alert("✅ Test Broadcast sent successfully! Check your Telegram.");
+    } catch (e: any) {
+      alert(`❌ Test Failed: ${e.response?.data?.detail || e.message}`);
+    } finally {
+      setSending(false);
+    }
+  };
 
   if (mode === "list") {
     return (
@@ -1162,6 +1186,7 @@ if (mode === "send_now") {
 
 function ChatsTab({ accounts, rentedAccounts }: any) {
   const [selectedAcc, setSelectedAcc] = useState("");
+  const [testChatId, setTestChatId] = useState("");
   const [channelId, setChannelId] = useState("");
   const [savedChannels, setSavedChannels] = useState<any[]>([]);
   const [channelMode, setChannelMode] = useState("copy");
